@@ -31,7 +31,7 @@ echo ErsatzTV HLS Copy 预处理工具（最终定版参数）
 echo ========================================================================
 echo.
 echo 目标：离线预处理一次，ErsatzTV 播放时继续使用 copy 模式
-echo 固定参数：preset=medium ^| crf=18 ^| audio=192k ^| 1秒GOP ^| 1秒强制关键帧
+echo 固定参数：preset=slow ^| crf=20 ^| audio=160k ^| 1080p封顶 ^| 1秒GOP ^| 1秒强制关键帧 ^| level=auto
 echo.
 echo 程序目录：%ROOT%
 echo.

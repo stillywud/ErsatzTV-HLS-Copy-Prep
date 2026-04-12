@@ -10,15 +10,37 @@ from pathlib import Path
 from typing import Optional
 
 VIDEO_EXTS = {'.mp4', '.mkv', '.avi', '.mov', '.m4v', '.ts', '.m2ts', '.wmv'}
-FIXED_PRESET = 'medium'
-FIXED_CRF = '18'
-FIXED_AUDIO_BITRATE = '192k'
+
+# ── 编码模式 ──────────────────────────────────────────────────
+# 'cpu'  = libx264 软编码（默认，兼容性最好，质量最高）
+# 'amf'  = h264_amf AMD GPU 硬编码（RX580 等，速度极快）
+# 'auto' = 自动检测：有 AMD AMF 则用 GPU，否则回退 CPU
+ENCODER_MODE = 'auto'
+
+# ── CPU 编码参数（libx264）──
+FIXED_PRESET = 'slow'
+FIXED_CRF = '20'
+
+# ── AMF GPU 编码参数（h264_amf）──
+AMF_USAGE = 'transcoding'          # transcoding / high_quality
+AMF_QUALITY = 'quality'            # balanced / speed / quality
+AMF_RATE_CONTROL = 'qvbr'          # qvbr = Quality Variable Bitrate
+AMF_QVBR_QUALITY_LEVEL = 20       # 0-51, 数值越小质量越高（类似 CRF 概念）
+AMF_PREANALYSIS = True             # 启用预分析，提升质量
+AMF_VBAQ = True                    # 启用 VBAQ，提升主观质量
+AMF_ENFORCE_HRD = False           # 不强制 HRD（VBR 模式下无需）
+AMF_MAX_B_FRAMES = 0               # 禁用 B 帧（兼容 HLS 流式播放）
+
+# ── 通用参数 ──────────────────────────────────────────────────
+FIXED_AUDIO_BITRATE = '160k'
 FIXED_AUDIO_RATE = '48000'
 FIXED_AUDIO_CHANNELS = '2'
-FIXED_RESOLUTION_MODE = 'source'
+FIXED_RESOLUTION_MODE = 'cap_1080p'
 FIXED_PIXEL_FORMAT = 'yuv420p'
 FIXED_PROFILE = 'high'
-FIXED_LEVEL = '4.1'
+FIXED_LEVEL = 'auto'
+MAX_WIDTH = 1920
+MAX_HEIGHT = 1080
 KEYFRAME_SECONDS = 1
 ETA_LOWER_MULTIPLIER = 0.8
 ETA_UPPER_MULTIPLIER = 2.5
@@ -106,9 +128,26 @@ def resolve_root(value: Optional[str]) -> Path:
     return Path(__file__).resolve().parent
 
 
-def build_vf(fps: float) -> str:
+def compute_target_resolution(src_width: int, src_height: int) -> tuple[int, int]:
+    """Determine output resolution: cap at 1080p, keep original if below."""
+    w, h = src_width, src_height
+    if w > MAX_WIDTH or h > MAX_HEIGHT:
+        scale = min(MAX_WIDTH / w, MAX_HEIGHT / h)
+        w = int(w * scale)
+        h = int(h * scale)
+    w = w if w % 2 == 0 else w + 1
+    h = h if h % 2 == 0 else h + 1
+    return w, h
+
+
+def build_vf(fps: float, src_width: int, src_height: int) -> str:
     fps_str = f'{fps:.6f}'.rstrip('0').rstrip('.')
-    return f'scale=trunc(iw/2)*2:trunc(ih/2)*2,setsar=1,fps={fps_str}'
+    tw, th = compute_target_resolution(src_width, src_height)
+    if tw != src_width or th != src_height:
+        scale_part = f'scale={tw}:{th}'
+    else:
+        scale_part = f'scale=trunc(iw/2)*2:trunc(ih/2)*2'
+    return f'{scale_part},setsar=1,fps={fps_str}'
 
 
 def ensure_dir(path: Path) -> Path:
@@ -225,8 +264,8 @@ def print_banner() -> None:
     print('ErsatzTV HLS Copy 预处理工具（最终定版参数）')
     print('=' * 72)
     print('目标：离线一次性整理源文件，播放时继续使用 copy 模式')
-    print('固定参数：H.264 / AAC / 保持原分辨率 / 保持原fps但转CFR / 1秒GOP / 1秒强制关键帧')
-    print('固定质量参数：preset=medium, crf=18, audio=192k')
+    print('固定参数：H.264 / AAC / 1080p封顶 / 保持原fps但转CFR / 1秒GOP / 1秒强制关键帧')
+    print('固定质量参数：preset=slow, crf=20, audio=160k, level=auto')
     print('')
 
 
@@ -251,6 +290,49 @@ def validate_tools(bin_dir: Path) -> tuple[Path, Path]:
     if not ffprobe.exists():
         raise FileNotFoundError(f'缺少 ffprobe.exe：{ffprobe}')
     return ffmpeg, ffprobe
+
+
+def detect_encoder(ffmpeg: Path, mode: str = ENCODER_MODE) -> str:
+    """Detect which video encoder to use based on mode setting.
+
+    Returns 'h264_amf' if AMF GPU encoding is available and mode allows it,
+    otherwise falls back to 'libx264'.
+    """
+    if mode == 'cpu':
+        return 'libx264'
+
+    # Try to check if h264_amf encoder is available
+    try:
+        result = subprocess.run(
+            [str(ffmpeg), '-hide_banner', '-encoders'],
+            capture_output=True, text=True, timeout=15,
+        )
+        if 'h264_amf' in result.stdout:
+            # Further verify: try a quick AMF init to confirm GPU is actually present
+            # Use -f lavfi -i nullsrc to create a test frame and encode with h264_amf
+            test_cmd = [
+                str(ffmpeg), '-y', '-hide_banner', '-loglevel', 'error',
+                '-f', 'lavfi', '-i', 'nullsrc=s=256x256:d=0.1',
+                '-c:v', 'h264_amf', '-f', 'null', '-',
+            ]
+            test_result = subprocess.run(test_cmd, capture_output=True, text=True, timeout=30)
+            if test_result.returncode == 0:
+                if mode in ('amf', 'auto'):
+                    return 'h264_amf'
+    except Exception:
+        pass
+
+    if mode == 'amf':
+        print(f'[警告] 指定了 AMF GPU 编码模式，但检测不到可用的 AMD GPU 硬件编码器。')
+        print(f'       将回退到 CPU (libx264) 编码。')
+
+    return 'libx264'
+
+
+def get_encoder_display_name(encoder: str) -> str:
+    if encoder == 'h264_amf':
+        return 'AMD AMF GPU (h264_amf)'
+    return 'CPU (libx264)'
 
 
 def estimate_window(total_duration: float) -> tuple[float, float]:
@@ -387,9 +469,11 @@ def move_to_done(src: Path, done_root: Path, source_root: Path) -> Path:
     raise RuntimeError(f'原文件移动到 done 失败：{last_error}')
 
 
-def build_command(ffmpeg: Path, src: Path, dst: Path, fps: float, has_audio: bool) -> list[str]:
+def build_command(ffmpeg: Path, src: Path, dst: Path, fps: float, src_width: int, src_height: int, has_audio: bool, encoder: str = 'libx264') -> list[str]:
     gop = max(1, round(fps * KEYFRAME_SECONDS))
-    cmd = [
+    tw, th = compute_target_resolution(src_width, src_height)
+
+    common_prefix = [
         str(ffmpeg),
         '-y',
         '-hide_banner',
@@ -401,19 +485,46 @@ def build_command(ffmpeg: Path, src: Path, dst: Path, fps: float, has_audio: boo
         '-map', '0:a:0?',
         '-sn',
         '-dn',
-        '-vf', build_vf(fps),
-        '-c:v', 'libx264',
-        '-preset', FIXED_PRESET,
-        '-crf', FIXED_CRF,
-        '-pix_fmt', FIXED_PIXEL_FORMAT,
-        '-profile:v', FIXED_PROFILE,
-        '-level', FIXED_LEVEL,
-        '-g', str(gop),
-        '-keyint_min', str(gop),
-        '-sc_threshold', '0',
-        '-bf', '0',
-        '-force_key_frames', f'expr:gte(t,n_forced*{KEYFRAME_SECONDS})',
+        '-avoid_negative_ts', 'make_zero',
     ]
+
+    if encoder == 'h264_amf':
+        # ── AMD AMF GPU 编码路径 ──
+        # AMF 输入需要 NV12，由 -vf 中的 format 转换；GPU 编码器自带 GOP 控制
+        vf = build_vf(fps, src_width, src_height)
+        cmd = common_prefix + [
+            '-vf', f'{vf},format=nv12',
+            '-c:v', 'h264_amf',
+            '-usage', AMF_USAGE,
+            '-quality', AMF_QUALITY,
+            '-rc', AMF_RATE_CONTROL,
+            '-qvbr_quality_level', str(AMF_QVBR_QUALITY_LEVEL),
+            '-profile', 'high',
+            '-level', 'auto',
+            '-g', str(gop),
+            '-keyint_min', str(gop),
+            '-bf', str(AMF_MAX_B_FRAMES),
+            '-preanalysis', '1' if AMF_PREANALYSIS else '0',
+            '-vbaq', '1' if AMF_VBAQ else '0',
+            '-enforce_hrd', '1' if AMF_ENFORCE_HRD else '0',
+            '-force_key_frames', f'expr:gte(t,n_forced*{KEYFRAME_SECONDS})',
+        ]
+    else:
+        # ── CPU libx264 编码路径（原逻辑） ──
+        cmd = common_prefix + [
+            '-vf', build_vf(fps, src_width, src_height),
+            '-c:v', 'libx264',
+            '-preset', FIXED_PRESET,
+            '-crf', FIXED_CRF,
+            '-pix_fmt', FIXED_PIXEL_FORMAT,
+            '-profile:v', FIXED_PROFILE,
+            '-g', str(gop),
+            '-keyint_min', str(gop),
+            '-sc_threshold', '0',
+            '-bf', '0',
+            '-force_key_frames', f'expr:gte(t,n_forced*{KEYFRAME_SECONDS})',
+        ]
+
     if has_audio:
         cmd += [
             '-c:a', 'aac',
@@ -427,17 +538,23 @@ def build_command(ffmpeg: Path, src: Path, dst: Path, fps: float, has_audio: boo
     return cmd
 
 
-def run_one(ffmpeg: Path, src: Path, dst: Path, meta: dict, file_log: Path) -> tuple[int, Optional[Path], Optional[str]]:
+def run_one(ffmpeg: Path, src: Path, dst: Path, meta: dict, file_log: Path, encoder: str = 'libx264') -> tuple[int, Optional[Path], Optional[str]]:
     fps = meta['fps']
     duration = meta['duration']
-    cmd = build_command(ffmpeg, src, dst, fps, bool(meta['audio']))
+    src_width = int(meta['video'].get('width') or 0)
+    src_height = int(meta['video'].get('height') or 0)
+    tw, th = compute_target_resolution(src_width, src_height)
+    cmd = build_command(ffmpeg, src, dst, fps, src_width, src_height, bool(meta['audio']), encoder=encoder)
     ensure_dir(dst.parent)
     ensure_dir(file_log.parent)
 
     with file_log.open('w', encoding='utf-8', newline='') as logf:
         logf.write(f'[{iso_now()}] SOURCE: {src}\n')
         logf.write(f'[{iso_now()}] TARGET: {dst}\n')
+        logf.write(f'[{iso_now()}] ENCODER: {encoder}\n')
         logf.write(f'[{iso_now()}] FPS: {fps:.6f}\n')
+        logf.write(f'[{iso_now()}] SOURCE_RESOLUTION: {src_width}x{src_height}\n')
+        logf.write(f'[{iso_now()}] TARGET_RESOLUTION: {tw}x{th}\n')
         logf.write(f'[{iso_now()}] CMD: {json.dumps(cmd, ensure_ascii=False)}\n\n')
         logf.flush()
 
@@ -488,20 +605,32 @@ def default_paths(root: Path) -> dict:
     }
 
 
-def print_fixed_params() -> None:
+def print_fixed_params(encoder: str = 'libx264') -> None:
     print('固定参数如下：')
-    print(f'  - 视频编码: libx264')
-    print(f'  - preset: {FIXED_PRESET}')
-    print(f'  - crf: {FIXED_CRF}')
+    if encoder == 'h264_amf':
+        print(f'  - 视频编码: h264_amf（AMD GPU 硬编码）')
+        print(f'  - usage: {AMF_USAGE}')
+        print(f'  - quality: {AMF_QUALITY}')
+        print(f'  - 码率控制: {AMF_RATE_CONTROL}')
+        print(f'  - qvbr_quality_level: {AMF_QVBR_QUALITY_LEVEL}')
+        print(f'  - preanalysis: {AMF_PREANALYSIS}')
+        print(f'  - vbaq: {AMF_VBAQ}')
+    else:
+        print(f'  - 视频编码: libx264（CPU 软编码）')
+        print(f'  - preset: {FIXED_PRESET}')
+        print(f'  - crf: {FIXED_CRF}')
     print(f'  - 音频编码: aac')
     print(f'  - 音频码率: {FIXED_AUDIO_BITRATE}')
     print(f'  - 音频采样率: {FIXED_AUDIO_RATE}')
     print(f'  - 音频声道: {FIXED_AUDIO_CHANNELS}')
-    print(f'  - 分辨率策略: 保持原分辨率（仅修正为偶数尺寸）')
+    print(f'  - 分辨率策略: 1080p封顶（超过则等比缩放，不超过则保持原分辨率，仅修正为偶数尺寸）')
+    print(f'  - profile: {FIXED_PROFILE}')
+    print(f'  - level: {FIXED_LEVEL}（自动选择）')
     print(f'  - 帧率策略: 保持原fps，输出为CFR')
     print(f'  - GOP: {KEYFRAME_SECONDS}秒')
     print(f'  - 强制关键帧: 每{KEYFRAME_SECONDS}秒')
-    print(f'  - 其他: sc_threshold=0, bf=0, pix_fmt={FIXED_PIXEL_FORMAT}, SAR=1:1, movflags=+faststart')
+    print(f'  - 编码器模式: {ENCODER_MODE}（auto=自动检测GPU, cpu=强制CPU, amf=强制GPU）')
+    print(f'  - 其他: bf=0, SAR=1:1, avoid_negative_ts=make_zero, movflags=+faststart')
     print('')
 
 
@@ -711,7 +840,10 @@ def guided_mode(root: Path) -> int:
     print('[1/3] 环境检查通过')
     print(f'  ffmpeg  = {ffmpeg}')
     print(f'  ffprobe = {ffprobe}')
-    print_fixed_params()
+
+    encoder = detect_encoder(ffmpeg)
+    print(f'  编码器  = {get_encoder_display_name(encoder)}')
+    print_fixed_params(encoder)
 
     print('[2/3] 正在扫描源文件并预估处理时间，请稍候...')
     pf = preflight(selected['source'], ffprobe, recursive=True)
@@ -733,10 +865,10 @@ def guided_mode(root: Path) -> int:
         print('已取消。')
         return 0
 
-    return execute_run(selected['source'], selected['target'], selected['done'], selected['logs'], ffmpeg, ffprobe)
+    return execute_run(selected['source'], selected['target'], selected['done'], selected['logs'], ffmpeg, ffprobe, encoder)
 
 
-def execute_run(source_dir: Path, target_dir: Path, done_dir: Path, logs_dir: Path, ffmpeg: Path, ffprobe: Path) -> int:
+def execute_run(source_dir: Path, target_dir: Path, done_dir: Path, logs_dir: Path, ffmpeg: Path, ffprobe: Path, encoder: str = 'libx264') -> int:
     files = list_videos(source_dir, recursive=True)
     if not files:
         print('源目录为空，没有可处理文件。')
@@ -805,7 +937,7 @@ def execute_run(source_dir: Path, target_dir: Path, done_dir: Path, logs_dir: Pa
                     print(f'    注意: 目标文件已存在，但校验未通过：{existing_reason}')
                     print('    将重新转码并覆盖目标文件。')
 
-                rc, _, err = run_one(ffmpeg, src, dst, meta, file_log)
+                rc, _, err = run_one(ffmpeg, src, dst, meta, file_log, encoder=encoder)
                 if rc != 0:
                     raise RuntimeError(err or f'ffmpeg exited with code {rc}')
 
@@ -838,7 +970,9 @@ def execute_run(source_dir: Path, target_dir: Path, done_dir: Path, logs_dir: Pa
         'target_dir': str(target_dir),
         'done_dir': str(done_dir),
         'logs_dir': str(logs_dir),
+        'encoder': encoder,
         'fixed_params': {
+            'encoder': encoder,
             'preset': FIXED_PRESET,
             'crf': FIXED_CRF,
             'audio_bitrate': FIXED_AUDIO_BITRATE,
@@ -884,7 +1018,9 @@ def check_only(root: Path) -> int:
     print('环境检查通过。')
     print(f'ffmpeg:  {ffmpeg}')
     print(f'ffprobe: {ffprobe}')
-    print_fixed_params()
+    encoder = detect_encoder(ffmpeg)
+    print(f'编码器:  {get_encoder_display_name(encoder)}')
+    print_fixed_params(encoder)
     return 0
 
 
