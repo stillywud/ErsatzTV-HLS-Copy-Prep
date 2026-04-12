@@ -1,2 +1,10 @@
 bin/ffmpeg.exe
 bin/ffprobe.exe
+source/
+done/
+target/
+__pycache__/
+logs/*.log
+logs/*.jsonl
+logs/*.json
+logs/*.txt
