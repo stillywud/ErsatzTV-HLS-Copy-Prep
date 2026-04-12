@@ -1,0 +1,40 @@
+{
+  "generated_at": "2026-03-24T22:14:51",
+  "source_dir": "D:\\apps\\ErsatzTV-HLS-Copy-Prep\\source",
+  "logs_dir": "D:\\apps\\ErsatzTV-HLS-Copy-Prep\\logs",
+  "fixed_params": {
+    "preset": "medium",
+    "crf": "18",
+    "audio_bitrate": "192k",
+    "audio_rate": "48000",
+    "audio_channels": "2",
+    "resolution_mode": "source",
+    "gop_seconds": 1
+  },
+  "summary": {
+    "count": 1,
+    "total_size_bytes": 365578328,
+    "total_duration_seconds": 1528.682646,
+    "risk_high": 0,
+    "risk_medium": 0,
+    "risk_low": 1
+  },
+  "entries": [
+    {
+      "path": "D:\\apps\\ErsatzTV-HLS-Copy-Prep\\source\\01.mp4",
+      "size_bytes": 365578328,
+      "duration_seconds": 1528.682646,
+      "width": 1920,
+      "height": 1080,
+      "fps": 25.0,
+      "avg_fps": 25.0,
+      "real_fps": 25.0,
+      "video_codec": "h264",
+      "audio_codec": "aac",
+      "sar": "1:1",
+      "risk_score": 0,
+      "risk_level": "低",
+      "reasons": []
+    }
+  ]
+}

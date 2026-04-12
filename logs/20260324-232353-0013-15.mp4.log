@@ -1,0 +1,1698 @@
+[2026-03-25T04:43:21] SOURCE: D:\apps\ErsatzTV-HLS-Copy-Prep\source\15.mp4
+[2026-03-25T04:43:21] TARGET: D:\apps\ErsatzTV-HLS-Copy-Prep\target\15.mp4
+[2026-03-25T04:43:21] FPS: 25.000000
+[2026-03-25T04:43:21] CMD: ["D:\\apps\\ErsatzTV-HLS-Copy-Prep\\bin\\ffmpeg.exe", "-y", "-hide_banner", "-loglevel", "info", "-stats_period", "5", "-progress", "pipe:1", "-i", "D:\\apps\\ErsatzTV-HLS-Copy-Prep\\source\\15.mp4", "-map", "0:v:0", "-map", "0:a:0?", "-sn", "-dn", "-vf", "scale=trunc(iw/2)*2:trunc(ih/2)*2,setsar=1,fps=25", "-c:v", "libx264", "-preset", "medium", "-crf", "18", "-pix_fmt", "yuv420p", "-profile:v", "high", "-level", "4.1", "-g", "25", "-keyint_min", "25", "-sc_threshold", "0", "-bf", "0", "-force_key_frames", "expr:gte(t,n_forced*1)", "-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-ac", "2", "-movflags", "+faststart", "D:\\apps\\ErsatzTV-HLS-Copy-Prep\\target\\15.mp4"]
+
+ffmpeg stats and -progress period set to 5.
+Input #0, mov,mp4,m4a,3gp,3g2,mj2, from 'D:\apps\ErsatzTV-HLS-Copy-Prep\source\15.mp4':
+  Metadata:
+    major_brand     : isom
+    minor_version   : 512
+    compatible_brands: isomiso2avc1mp41
+    date            : 2023-08-22T11:52:50.7557562+08:00
+    encoder         : Lavf58.32.104
+  Duration: 00:26:27.29, start: 0.000000, bitrate: 1475 kb/s
+  Stream #0:0[0x1](und): Video: h264 (High) (avc1 / 0x31637661), yuv420p(tv, bt709, progressive), 1920x1080 [SAR 1:1 DAR 16:9], 1376 kb/s, 25 fps, 25 tbr, 90k tbn (default)
+      Metadata:
+        handler_name    : VideoHandler
+        vendor_id       : [0][0][0][0]
+  Stream #0:1[0x2](und): Audio: aac (LC) (mp4a / 0x6134706D), 48000 Hz, stereo, fltp, 93 kb/s (default)
+      Metadata:
+        handler_name    : SoundHandler
+        vendor_id       : [0][0][0][0]
+Stream mapping:
+  Stream #0:0 -> #0:0 (h264 (native) -> h264 (libx264))
+  Stream #0:1 -> #0:1 (aac (native) -> aac (native))
+Press [q] to stop, [?] for help
+[libx264 @ 000001be44aa1580] using SAR=1/1
+[libx264 @ 000001be44aa1580] using cpu capabilities: MMX2 SSE2Fast SSSE3 SSE4.2 AVX
+[libx264 @ 000001be44aa1580] profile High, level 4.1, 4:2:0, 8-bit
+[libx264 @ 000001be44aa1580] 264 - core 165 - H.264/MPEG-4 AVC codec - Copyleft 2003-2025 - http://www.videolan.org/x264.html - options: cabac=1 ref=3 deblock=1:0:0 analyse=0x3:0x113 me=hex subme=7 psy=1 psy_rd=1.00:0.00 mixed_ref=1 me_range=16 chroma_me=1 trellis=1 8x8dct=1 cqm=0 deadzone=21,11 fast_pskip=1 chroma_qp_offset=-2 threads=12 lookahead_threads=2 sliced_threads=0 nr=0 decimate=1 interlaced=0 bluray_compat=0 constrained_intra=0 bframes=0 weightp=2 keyint=25 keyint_min=13 scenecut=0 intra_refresh=0 rc_lookahead=25 rc=crf mbtree=1 crf=18.0 qcomp=0.60 qpmin=0 qpmax=69 qpstep=4 ip_ratio=1.40 aq=1:1.00
+Output #0, mp4, to 'D:\apps\ErsatzTV-HLS-Copy-Prep\target\15.mp4':
+  Metadata:
+    major_brand     : isom
+    minor_version   : 512
+    compatible_brands: isomiso2avc1mp41
+    date            : 2023-08-22T11:52:50.7557562+08:00
+    encoder         : Lavf61.7.100
+  Stream #0:0(und): Video: h264 (avc1 / 0x31637661), yuv420p(tv, bt709, progressive), 1920x1080 [SAR 1:1 DAR 16:9], q=2-31, 25 fps, 12800 tbn (default)
+      Metadata:
+        handler_name    : VideoHandler
+        vendor_id       : [0][0][0][0]
+        encoder         : Lavc61.19.101 libx264
+      Side data:
+        cpb: bitrate max/min/avg: 0/0/0 buffer size: 0 vbv_delay: N/A
+  Stream #0:1(und): Audio: aac (LC) (mp4a / 0x6134706D), 48000 Hz, stereo, fltp, 192 kb/s (default)
+      Metadata:
+        handler_name    : SoundHandler
+        vendor_id       : [0][0][0][0]
+        encoder         : Lavc61.19.101 aac
+frame=  302 fps= 60 q=23.0 size=    2048KiB time=00:00:12.12 bitrate=1384.3kbits/s speed=2.41x    
+frame=302
+fps=60.15
+stream_0_0_q=23.0
+bitrate=1384.3kbits/s
+total_size=2097200
+out_time_us=12120000
+out_time_ms=12120000
+out_time=00:00:12.120000
+dup_frames=0
+drop_frames=0
+speed=2.41x
+progress=continue
+frame=  518 fps= 52 q=23.0 size=    5120KiB time=00:00:20.76 bitrate=2020.4kbits/s speed=2.07x    
+frame=518
+fps=51.62
+stream_0_0_q=23.0
+bitrate=2020.4kbits/s
+total_size=5242928
+out_time_us=20760000
+out_time_ms=20760000
+out_time=00:00:20.760000
+dup_frames=0
+drop_frames=0
+speed=2.07x
+progress=continue
+frame=  653 fps= 43 q=23.0 size=    8704KiB time=00:00:26.12 bitrate=2729.8kbits/s speed=1.74x    
+frame=653
+fps=43.39
+stream_0_0_q=23.0
+bitrate=2729.8kbits/s
+total_size=8912944
+out_time_us=26120000
+out_time_ms=26120000
+out_time=00:00:26.120000
+dup_frames=0
+drop_frames=0
+speed=1.74x
+progress=continue
+frame=  780 fps= 39 q=23.0 size=   12544KiB time=00:00:31.24 bitrate=3289.4kbits/s speed=1.56x    
+frame=780
+fps=38.84
+stream_0_0_q=23.0
+bitrate=3289.4kbits/s
+total_size=12845104
+out_time_us=31240000
+out_time_ms=31240000
+out_time=00:00:31.240000
+dup_frames=0
+drop_frames=0
+speed=1.56x
+progress=continue
+frame=  910 fps= 36 q=23.0 size=   16128KiB time=00:00:36.36 bitrate=3633.7kbits/s speed=1.44x    
+frame=910
+fps=36.15
+stream_0_0_q=23.0
+bitrate=3633.7kbits/s
+total_size=16515120
+out_time_us=36360000
+out_time_ms=36360000
+out_time=00:00:36.360000
+dup_frames=0
+drop_frames=0
+speed=1.44x
+progress=continue
+frame= 1030 fps= 34 q=23.0 size=   19968KiB time=00:00:41.24 bitrate=3966.5kbits/s speed=1.36x    
+frame=1030
+fps=34.02
+stream_0_0_q=23.0
+bitrate=3966.5kbits/s
+total_size=20447280
+out_time_us=41240000
+out_time_ms=41240000
+out_time=00:00:41.240000
+dup_frames=0
+drop_frames=0
+speed=1.36x
+progress=continue
+frame= 1133 fps= 32 q=23.0 size=   24064KiB time=00:00:45.32 bitrate=4349.8kbits/s speed=1.28x    
+frame=1133
+fps=32.06
+stream_0_0_q=23.0
+bitrate=4349.8kbits/s
+total_size=24641584
+out_time_us=45320000
+out_time_ms=45320000
+out_time=00:00:45.320000
+dup_frames=0
+drop_frames=0
+speed=1.28x
+progress=continue
+frame= 1239 fps= 31 q=23.0 size=   28160KiB time=00:00:49.60 bitrate=4650.9kbits/s speed=1.23x    
+frame=1239
+fps=30.64
+stream_0_0_q=23.0
+bitrate=4650.9kbits/s
+total_size=28835888
+out_time_us=49600000
+out_time_ms=49600000
+out_time=00:00:49.600000
+dup_frames=0
+drop_frames=0
+speed=1.23x
+progress=continue
+frame= 1361 fps= 30 q=23.0 size=   31488KiB time=00:00:54.48 bitrate=4734.8kbits/s speed= 1.2x    
+frame=1361
+fps=29.93
+stream_0_0_q=23.0
+bitrate=4734.8kbits/s
+total_size=32243760
+out_time_us=54480000
+out_time_ms=54480000
+out_time=00:00:54.480000
+dup_frames=0
+drop_frames=0
+speed= 1.2x
+progress=continue
+frame= 1480 fps= 29 q=23.0 size=   36096KiB time=00:00:59.24 bitrate=4991.5kbits/s speed=1.17x    
+frame=1480
+fps=29.31
+stream_0_0_q=23.0
+bitrate=4991.5kbits/s
+total_size=36962352
+out_time_us=59240000
+out_time_ms=59240000
+out_time=00:00:59.240000
+dup_frames=0
+drop_frames=0
+speed=1.17x
+progress=continue
+frame= 1574 fps= 28 q=23.0 size=   40704KiB time=00:01:03.00 bitrate=5292.8kbits/s speed=1.14x    
+frame=1574
+fps=28.36
+stream_0_0_q=23.0
+bitrate=5292.8kbits/s
+total_size=41680944
+out_time_us=63000000
+out_time_ms=63000000
+out_time=00:01:03.000000
+dup_frames=0
+drop_frames=0
+speed=1.14x
+progress=continue
+frame= 1677 fps= 28 q=23.0 size=   45824KiB time=00:01:07.12 bitrate=5592.8kbits/s speed=1.11x    
+frame=1677
+fps=27.70
+stream_0_0_q=23.0
+bitrate=5592.8kbits/s
+total_size=46923824
+out_time_us=67120000
+out_time_ms=67120000
+out_time=00:01:07.120000
+dup_frames=0
+drop_frames=0
+speed=1.11x
+progress=continue
+frame= 1805 fps= 28 q=23.0 size=   50688KiB time=00:01:12.20 bitrate=5751.2kbits/s speed= 1.1x    
+frame=1805
+fps=27.51
+stream_0_0_q=23.0
+bitrate=5751.2kbits/s
+total_size=51904560
+out_time_us=72200000
+out_time_ms=72200000
+out_time=00:01:12.200000
+dup_frames=0
+drop_frames=0
+speed= 1.1x
+progress=continue
+frame= 1924 fps= 27 q=23.0 size=   54528KiB time=00:01:17.00 bitrate=5801.2kbits/s speed=1.09x    
+frame=1924
+fps=27.22
+stream_0_0_q=23.0
+bitrate=5801.2kbits/s
+total_size=55836720
+out_time_us=77000000
+out_time_ms=77000000
+out_time=00:01:17.000000
+dup_frames=0
+drop_frames=0
+speed=1.09x
+progress=continue
+frame= 2035 fps= 27 q=23.0 size=   58880KiB time=00:01:21.44 bitrate=5922.7kbits/s speed=1.08x    
+frame=2035
+fps=26.88
+stream_0_0_q=23.0
+bitrate=5922.7kbits/s
+total_size=60293168
+out_time_us=81440000
+out_time_ms=81440000
+out_time=00:01:21.440000
+dup_frames=0
+drop_frames=0
+speed=1.08x
+progress=continue
+frame= 2142 fps= 27 q=23.0 size=   62976KiB time=00:01:25.68 bitrate=6021.2kbits/s speed=1.06x    
+frame=2142
+fps=26.53
+stream_0_0_q=23.0
+bitrate=6021.2kbits/s
+total_size=64487472
+out_time_us=85680000
+out_time_ms=85680000
+out_time=00:01:25.680000
+dup_frames=0
+drop_frames=0
+speed=1.06x
+progress=continue
+frame= 2270 fps= 26 q=23.0 size=   66816KiB time=00:01:30.84 bitrate=6025.5kbits/s speed=1.06x    
+frame=2270
+fps=26.47
+stream_0_0_q=23.0
+bitrate=6025.5kbits/s
+total_size=68419632
+out_time_us=90840000
+out_time_ms=90840000
+out_time=00:01:30.840000
+dup_frames=0
+drop_frames=0
+speed=1.06x
+progress=continue
+frame= 2410 fps= 27 q=23.0 size=   71680KiB time=00:01:36.40 bitrate=6091.3kbits/s speed=1.06x    
+frame=2410
+fps=26.54
+stream_0_0_q=23.0
+bitrate=6091.3kbits/s
+total_size=73400368
+out_time_us=96400000
+out_time_ms=96400000
+out_time=00:01:36.400000
+dup_frames=0
+drop_frames=0
+speed=1.06x
+progress=continue
+frame= 2540 fps= 27 q=20.0 size=   76032KiB time=00:01:41.60 bitrate=6130.5kbits/s speed=1.06x    
+frame=2540
+fps=26.51
+stream_0_0_q=20.0
+bitrate=6130.5kbits/s
+total_size=77856816
+out_time_us=101600000
+out_time_ms=101600000
+out_time=00:01:41.600000
+dup_frames=0
+drop_frames=0
+speed=1.06x
+progress=continue
+frame= 2662 fps= 26 q=23.0 size=   80384KiB time=00:01:46.48 bitrate=6184.3kbits/s speed=1.06x    
+frame=2662
+fps=26.40
+stream_0_0_q=23.0
+bitrate=6184.3kbits/s
+total_size=82313264
+out_time_us=106480000
+out_time_ms=106480000
+out_time=00:01:46.480000
+dup_frames=0
+drop_frames=0
+speed=1.06x
+progress=continue
+frame= 2929 fps= 28 q=23.0 size=   84736KiB time=00:01:57.16 bitrate=5924.9kbits/s speed=1.11x    
+frame=2929
+fps=27.67
+stream_0_0_q=23.0
+bitrate=5924.9kbits/s
+total_size=86769712
+out_time_us=117160000
+out_time_ms=117160000
+out_time=00:01:57.160000
+dup_frames=0
+drop_frames=0
+speed=1.11x
+progress=continue
+frame= 3059 fps= 28 q=23.0 size=   89088KiB time=00:02:02.40 bitrate=5962.5kbits/s speed= 1.1x    
+frame=3059
+fps=27.58
+stream_0_0_q=23.0
+bitrate=5962.5kbits/s
+total_size=91226160
+out_time_us=122400000
+out_time_ms=122400000
+out_time=00:02:02.400000
+dup_frames=0
+drop_frames=0
+speed= 1.1x
+progress=continue
+frame= 3180 fps= 27 q=23.0 size=   93696KiB time=00:02:07.24 bitrate=6032.4kbits/s speed= 1.1x    
+frame=3180
+fps=27.43
+stream_0_0_q=23.0
+bitrate=6032.4kbits/s
+total_size=95944752
+out_time_us=127240000
+out_time_ms=127240000
+out_time=00:02:07.240000
+dup_frames=0
+drop_frames=0
+speed= 1.1x
+progress=continue
+frame= 3291 fps= 27 q=23.0 size=   97792KiB time=00:02:11.68 bitrate=6083.8kbits/s speed=1.09x    
+frame=3291
+fps=27.21
+stream_0_0_q=23.0
+bitrate=6083.8kbits/s
+total_size=100139056
+out_time_us=131680000
+out_time_ms=131680000
+out_time=00:02:11.680000
+dup_frames=0
+drop_frames=0
+speed=1.09x
+progress=continue
+frame= 3402 fps= 27 q=23.0 size=  102400KiB time=00:02:16.12 bitrate=6162.7kbits/s speed=1.08x    
+frame=3402
+fps=27.00
+stream_0_0_q=23.0
+bitrate=6162.7kbits/s
+total_size=104857648
+out_time_us=136120000
+out_time_ms=136120000
+out_time=00:02:16.120000
+dup_frames=0
+drop_frames=0
+speed=1.08x
+progress=continue
+frame= 3505 fps= 27 q=23.0 size=  107008KiB time=00:02:20.24 bitrate=6250.8kbits/s speed=1.07x    
+frame=3505
+fps=26.75
+stream_0_0_q=23.0
+bitrate=6250.8kbits/s
+total_size=109576240
+out_time_us=140240000
+out_time_ms=140240000
+out_time=00:02:20.240000
+dup_frames=0
+drop_frames=0
+speed=1.07x
+progress=continue
+frame= 3614 fps= 27 q=23.0 size=  111360KiB time=00:02:24.56 bitrate=6310.6kbits/s speed=1.06x    
+frame=3614
+fps=26.56
+stream_0_0_q=23.0
+bitrate=6310.6kbits/s
+total_size=114032688
+out_time_us=144560000
+out_time_ms=144560000
+out_time=00:02:24.560000
+dup_frames=0
+drop_frames=0
+speed=1.06x
+progress=continue
+frame= 3723 fps= 26 q=23.0 size=  115200KiB time=00:02:28.96 bitrate=6335.4kbits/s speed=1.06x    
+frame=3723
+fps=26.39
+stream_0_0_q=23.0
+bitrate=6335.4kbits/s
+total_size=117964848
+out_time_us=148960000
+out_time_ms=148960000
+out_time=00:02:28.960000
+dup_frames=0
+drop_frames=0
+speed=1.06x
+progress=continue
+frame= 3843 fps= 26 q=23.0 size=  120064KiB time=00:02:33.76 bitrate=6396.8kbits/s speed=1.05x    
+frame=3843
+fps=26.30
+stream_0_0_q=23.0
+bitrate=6396.8kbits/s
+total_size=122945584
+out_time_us=153760000
+out_time_ms=153760000
+out_time=00:02:33.760000
+dup_frames=0
+drop_frames=0
+speed=1.05x
+progress=continue
+frame= 3955 fps= 26 q=23.0 size=  123904KiB time=00:02:38.24 bitrate=6414.4kbits/s speed=1.05x    
+frame=3955
+fps=26.17
+stream_0_0_q=23.0
+bitrate=6414.4kbits/s
+total_size=126877744
+out_time_us=158240000
+out_time_ms=158240000
+out_time=00:02:38.240000
+dup_frames=0
+drop_frames=0
+speed=1.05x
+progress=continue
+frame= 4047 fps= 26 q=23.0 size=  127488KiB time=00:02:41.92 bitrate=6450.0kbits/s speed=1.04x    
+frame=4047
+fps=25.92
+stream_0_0_q=23.0
+bitrate=6450.0kbits/s
+total_size=130547760
+out_time_us=161920000
+out_time_ms=161920000
+out_time=00:02:41.920000
+dup_frames=0
+drop_frames=0
+speed=1.04x
+progress=continue
+frame= 4138 fps= 26 q=23.0 size=  130816KiB time=00:02:45.56 bitrate=6472.9kbits/s speed=1.03x    
+frame=4138
+fps=25.68
+stream_0_0_q=23.0
+bitrate=6472.9kbits/s
+total_size=133955632
+out_time_us=165560000
+out_time_ms=165560000
+out_time=00:02:45.560000
+dup_frames=0
+drop_frames=0
+speed=1.03x
+progress=continue
+frame= 4242 fps= 26 q=23.0 size=  134400KiB time=00:02:49.68 bitrate=6488.7kbits/s speed=1.02x    
+frame=4242
+fps=25.53
+stream_0_0_q=23.0
+bitrate=6488.7kbits/s
+total_size=137625648
+out_time_us=169680000
+out_time_ms=169680000
+out_time=00:02:49.680000
+dup_frames=0
+drop_frames=0
+speed=1.02x
+progress=continue
+frame= 4336 fps= 25 q=23.0 size=  137984KiB time=00:02:53.48 bitrate=6515.8kbits/s speed=1.01x    
+frame=4336
+fps=25.32
+stream_0_0_q=23.0
+bitrate=6515.8kbits/s
+total_size=141295664
+out_time_us=173480000
+out_time_ms=173480000
+out_time=00:02:53.480000
+dup_frames=0
+drop_frames=0
+speed=1.01x
+progress=continue
+frame= 4438 fps= 25 q=23.0 size=  140544KiB time=00:02:57.56 bitrate=6484.2kbits/s speed=1.01x    
+frame=4438
+fps=25.17
+stream_0_0_q=23.0
+bitrate=6484.2kbits/s
+total_size=143917104
+out_time_us=177560000
+out_time_ms=177560000
+out_time=00:02:57.560000
+dup_frames=0
+drop_frames=0
+speed=1.01x
+progress=continue
+frame= 4554 fps= 25 q=23.0 size=  143616KiB time=00:03:02.20 bitrate=6457.2kbits/s speed=   1x    
+frame=4554
+fps=25.11
+stream_0_0_q=23.0
+bitrate=6457.2kbits/s
+total_size=147062832
+out_time_us=182200000
+out_time_ms=182200000
+out_time=00:03:02.200000
+dup_frames=0
+drop_frames=0
+speed=   1x
+progress=continue
+frame= 4657 fps= 25 q=23.0 size=  146432KiB time=00:03:06.32 bitrate=6438.2kbits/s speed=   1x    
+frame=4657
+fps=24.99
+stream_0_0_q=23.0
+bitrate=6438.2kbits/s
+total_size=149946416
+out_time_us=186320000
+out_time_ms=186320000
+out_time=00:03:06.320000
+dup_frames=0
+drop_frames=0
+speed=   1x
+progress=continue
+frame= 4786 fps= 25 q=23.0 size=  149760KiB time=00:03:11.44 bitrate=6408.5kbits/s speed=   1x    
+frame=4786
+fps=25.01
+stream_0_0_q=23.0
+bitrate=6408.5kbits/s
+total_size=153354288
+out_time_us=191440000
+out_time_ms=191440000
+out_time=00:03:11.440000
+dup_frames=0
+drop_frames=0
+speed=   1x
+progress=continue
+frame= 4929 fps= 25 q=23.0 size=  153088KiB time=00:03:17.20 bitrate=6359.5kbits/s speed=   1x    
+frame=4929
+fps=25.10
+stream_0_0_q=23.0
+bitrate=6359.5kbits/s
+total_size=156762160
+out_time_us=197200000
+out_time_ms=197200000
+out_time=00:03:17.200000
+dup_frames=0
+drop_frames=0
+speed=   1x
+progress=continue
+frame= 5080 fps= 25 q=23.0 size=  156416KiB time=00:03:23.24 bitrate=6304.7kbits/s speed=1.01x    
+frame=5080
+fps=25.22
+stream_0_0_q=23.0
+bitrate=6304.7kbits/s
+total_size=160170032
+out_time_us=203240000
+out_time_ms=203240000
+out_time=00:03:23.240000
+dup_frames=0
+drop_frames=0
+speed=1.01x
+progress=continue
+frame= 5260 fps= 25 q=23.0 size=  159744KiB time=00:03:30.44 bitrate=6218.5kbits/s speed=1.02x    
+frame=5260
+fps=25.48
+stream_0_0_q=23.0
+bitrate=6218.5kbits/s
+total_size=163577904
+out_time_us=210440000
+out_time_ms=210440000
+out_time=00:03:30.440000
+dup_frames=0
+drop_frames=0
+speed=1.02x
+progress=continue
+frame= 5398 fps= 26 q=23.0 size=  163328KiB time=00:03:35.96 bitrate=6195.5kbits/s speed=1.02x    
+frame=5398
+fps=25.52
+stream_0_0_q=23.0
+bitrate=6195.5kbits/s
+total_size=167247920
+out_time_us=215960000
+out_time_ms=215960000
+out_time=00:03:35.960000
+dup_frames=0
+drop_frames=0
+speed=1.02x
+progress=continue
+frame= 5583 fps= 26 q=23.0 size=  167168KiB time=00:03:43.36 bitrate=6131.1kbits/s speed=1.03x    
+frame=5583
+fps=25.79
+stream_0_0_q=23.0
+bitrate=6131.1kbits/s
+total_size=171180080
+out_time_us=223360000
+out_time_ms=223360000
+out_time=00:03:43.360000
+dup_frames=0
+drop_frames=0
+speed=1.03x
+progress=continue
+frame= 5729 fps= 26 q=23.0 size=  170496KiB time=00:03:49.20 bitrate=6093.8kbits/s speed=1.03x    
+frame=5729
+fps=25.86
+stream_0_0_q=23.0
+bitrate=6093.8kbits/s
+total_size=174587952
+out_time_us=229200000
+out_time_ms=229200000
+out_time=00:03:49.200000
+dup_frames=0
+drop_frames=0
+speed=1.03x
+progress=continue
+frame= 5852 fps= 26 q=23.0 size=  173824KiB time=00:03:54.00 bitrate=6085.3kbits/s speed=1.03x    
+frame=5852
+fps=25.83
+stream_0_0_q=23.0
+bitrate=6085.3kbits/s
+total_size=177995824
+out_time_us=234000000
+out_time_ms=234000000
+out_time=00:03:54.000000
+dup_frames=0
+drop_frames=0
+speed=1.03x
+progress=continue
+frame= 5963 fps= 26 q=23.0 size=  177152KiB time=00:03:58.48 bitrate=6085.3kbits/s speed=1.03x    
+frame=5963
+fps=25.75
+stream_0_0_q=23.0
+bitrate=6085.3kbits/s
+total_size=181403696
+out_time_us=238480000
+out_time_ms=238480000
+out_time=00:03:58.480000
+dup_frames=0
+drop_frames=0
+speed=1.03x
+progress=continue
+frame= 6079 fps= 26 q=23.0 size=  180480KiB time=00:04:03.20 bitrate=6079.3kbits/s speed=1.03x    
+frame=6079
+fps=25.69
+stream_0_0_q=23.0
+bitrate=6079.3kbits/s
+total_size=184811568
+out_time_us=243200000
+out_time_ms=243200000
+out_time=00:04:03.200000
+dup_frames=0
+drop_frames=0
+speed=1.03x
+progress=continue
+frame= 6178 fps= 26 q=23.0 size=  183552KiB time=00:04:07.16 bitrate=6083.7kbits/s speed=1.02x    
+frame=6178
+fps=25.56
+stream_0_0_q=23.0
+bitrate=6083.7kbits/s
+total_size=187957296
+out_time_us=247160000
+out_time_ms=247160000
+out_time=00:04:07.160000
+dup_frames=0
+drop_frames=0
+speed=1.02x
+progress=continue
+frame= 6295 fps= 26 q=23.0 size=  186624KiB time=00:04:11.84 bitrate=6070.6kbits/s speed=1.02x    
+frame=6295
+fps=25.51
+stream_0_0_q=23.0
+bitrate=6070.6kbits/s
+total_size=191103024
+out_time_us=251840000
+out_time_ms=251840000
+out_time=00:04:11.840000
+dup_frames=0
+drop_frames=0
+speed=1.02x
+progress=continue
+frame= 6417 fps= 25 q=23.0 size=  190208KiB time=00:04:16.72 bitrate=6069.6kbits/s speed=1.02x    
+frame=6417
+fps=25.49
+stream_0_0_q=23.0
+bitrate=6069.6kbits/s
+total_size=194773040
+out_time_us=256720000
+out_time_ms=256720000
+out_time=00:04:16.720000
+dup_frames=0
+drop_frames=0
+speed=1.02x
+progress=continue
+frame= 6559 fps= 26 q=23.0 size=  193536KiB time=00:04:22.40 bitrate=6042.1kbits/s speed=1.02x    
+frame=6559
+fps=25.54
+stream_0_0_q=23.0
+bitrate=6042.1kbits/s
+total_size=198180912
+out_time_us=262400000
+out_time_ms=262400000
+out_time=00:04:22.400000
+dup_frames=0
+drop_frames=0
+speed=1.02x
+progress=continue
+frame= 6709 fps= 26 q=23.0 size=  197120KiB time=00:04:28.40 bitrate=6016.4kbits/s speed=1.03x    
+frame=6709
+fps=25.63
+stream_0_0_q=23.0
+bitrate=6016.4kbits/s
+total_size=201850928
+out_time_us=268400000
+out_time_ms=268400000
+out_time=00:04:28.400000
+dup_frames=0
+drop_frames=0
+speed=1.03x
+progress=continue
+frame= 6871 fps= 26 q=23.0 size=  200448KiB time=00:04:34.76 bitrate=5976.4kbits/s speed=1.03x    
+frame=6871
+fps=25.75
+stream_0_0_q=23.0
+bitrate=5976.4kbits/s
+total_size=205258800
+out_time_us=274760000
+out_time_ms=274760000
+out_time=00:04:34.760000
+dup_frames=0
+drop_frames=0
+speed=1.03x
+progress=continue
+frame= 7023 fps= 26 q=23.0 size=  204032KiB time=00:04:40.96 bitrate=5949.0kbits/s speed=1.03x    
+frame=7023
+fps=25.83
+stream_0_0_q=23.0
+bitrate=5949.0kbits/s
+total_size=208928816
+out_time_us=280960000
+out_time_ms=280960000
+out_time=00:04:40.960000
+dup_frames=0
+drop_frames=0
+speed=1.03x
+progress=continue
+frame= 7164 fps= 26 q=23.0 size=  207616KiB time=00:04:46.56 bitrate=5935.2kbits/s speed=1.03x    
+frame=7164
+fps=25.87
+stream_0_0_q=23.0
+bitrate=5935.2kbits/s
+total_size=212598832
+out_time_us=286560000
+out_time_ms=286560000
+out_time=00:04:46.560000
+dup_frames=0
+drop_frames=0
+speed=1.03x
+progress=continue
+frame= 7308 fps= 26 q=23.0 size=  211200KiB time=00:04:52.36 bitrate=5917.9kbits/s speed=1.04x    
+frame=7308
+fps=25.91
+stream_0_0_q=23.0
+bitrate=5917.9kbits/s
+total_size=216268848
+out_time_us=292360000
+out_time_ms=292360000
+out_time=00:04:52.360000
+dup_frames=0
+drop_frames=0
+speed=1.04x
+progress=continue
+frame= 7454 fps= 26 q=23.0 size=  215040KiB time=00:04:58.20 bitrate=5907.5kbits/s speed=1.04x    
+frame=7454
+fps=25.97
+stream_0_0_q=23.0
+bitrate=5907.5kbits/s
+total_size=220201008
+out_time_us=298200000
+out_time_ms=298200000
+out_time=00:04:58.200000
+dup_frames=0
+drop_frames=0
+speed=1.04x
+progress=continue
+frame= 7587 fps= 26 q=23.0 size=  218112KiB time=00:05:03.52 bitrate=5886.8kbits/s speed=1.04x    
+frame=7587
+fps=25.98
+stream_0_0_q=23.0
+bitrate=5886.8kbits/s
+total_size=223346736
+out_time_us=303520000
+out_time_ms=303520000
+out_time=00:05:03.520000
+dup_frames=0
+drop_frames=0
+speed=1.04x
+progress=continue
+frame= 7742 fps= 26 q=23.0 size=  221440KiB time=00:05:09.68 bitrate=5857.8kbits/s speed=1.04x    
+frame=7742
+fps=26.06
+stream_0_0_q=23.0
+bitrate=5857.8kbits/s
+total_size=226754608
+out_time_us=309680000
+out_time_ms=309680000
+out_time=00:05:09.680000
+dup_frames=0
+drop_frames=0
+speed=1.04x
+progress=continue
+frame= 7911 fps= 26 q=23.0 size=  224768KiB time=00:05:16.48 bitrate=5818.1kbits/s speed=1.05x    
+frame=7911
+fps=26.19
+stream_0_0_q=23.0
+bitrate=5818.1kbits/s
+total_size=230162480
+out_time_us=316480000
+out_time_ms=316480000
+out_time=00:05:16.480000
+dup_frames=0
+drop_frames=0
+speed=1.05x
+progress=continue
+frame= 8070 fps= 26 q=23.0 size=  228096KiB time=00:05:22.76 bitrate=5789.3kbits/s speed=1.05x    
+frame=8070
+fps=26.27
+stream_0_0_q=23.0
+bitrate=5789.3kbits/s
+total_size=233570352
+out_time_us=322760000
+out_time_ms=322760000
+out_time=00:05:22.760000
+dup_frames=0
+drop_frames=0
+speed=1.05x
+progress=continue
+frame= 8246 fps= 26 q=23.0 size=  231168KiB time=00:05:29.88 bitrate=5740.7kbits/s speed=1.06x    
+frame=8246
+fps=26.41
+stream_0_0_q=23.0
+bitrate=5740.7kbits/s
+total_size=236716080
+out_time_us=329880000
+out_time_ms=329880000
+out_time=00:05:29.880000
+dup_frames=0
+drop_frames=0
+speed=1.06x
+progress=continue
+frame= 8415 fps= 27 q=20.0 size=  234240KiB time=00:05:36.64 bitrate=5700.1kbits/s speed=1.06x    
+frame=8415
+fps=26.53
+stream_0_0_q=20.0
+bitrate=5700.1kbits/s
+total_size=239861808
+out_time_us=336640000
+out_time_ms=336640000
+out_time=00:05:36.640000
+dup_frames=0
+drop_frames=0
+speed=1.06x
+progress=continue
+frame= 8583 fps= 27 q=23.0 size=  237312KiB time=00:05:43.36 bitrate=5661.9kbits/s speed=1.07x    
+frame=8583
+fps=26.63
+stream_0_0_q=23.0
+bitrate=5661.9kbits/s
+total_size=243007536
+out_time_us=343360000
+out_time_ms=343360000
+out_time=00:05:43.360000
+dup_frames=0
+drop_frames=0
+speed=1.07x
+progress=continue
+frame= 8783 fps= 27 q=23.0 size=  240896KiB time=00:05:51.36 bitrate=5616.5kbits/s speed=1.07x    
+frame=8783
+fps=26.84
+stream_0_0_q=23.0
+bitrate=5616.5kbits/s
+total_size=246677552
+out_time_us=351360000
+out_time_ms=351360000
+out_time=00:05:51.360000
+dup_frames=0
+drop_frames=0
+speed=1.07x
+progress=continue
+frame= 8970 fps= 27 q=23.0 size=  244224KiB time=00:05:58.72 bitrate=5577.3kbits/s speed=1.08x    
+frame=8970
+fps=26.99
+stream_0_0_q=23.0
+bitrate=5577.3kbits/s
+total_size=250085424
+out_time_us=358720000
+out_time_ms=358720000
+out_time=00:05:58.720000
+dup_frames=0
+drop_frames=0
+speed=1.08x
+progress=continue
+frame= 9186 fps= 27 q=23.0 size=  247552KiB time=00:06:07.44 bitrate=5519.1kbits/s speed=1.09x    
+frame=9186
+fps=27.23
+stream_0_0_q=23.0
+bitrate=5519.1kbits/s
+total_size=253493296
+out_time_us=367440000
+out_time_ms=367440000
+out_time=00:06:07.440000
+dup_frames=0
+drop_frames=0
+speed=1.09x
+progress=continue
+frame= 9323 fps= 27 q=23.0 size=  250624KiB time=00:06:12.96 bitrate=5504.9kbits/s speed=1.09x    
+frame=9323
+fps=27.22
+stream_0_0_q=23.0
+bitrate=5504.9kbits/s
+total_size=256639024
+out_time_us=372960000
+out_time_ms=372960000
+out_time=00:06:12.960000
+dup_frames=0
+drop_frames=0
+speed=1.09x
+progress=continue
+frame= 9505 fps= 27 q=23.0 size=  253952KiB time=00:06:20.24 bitrate=5471.2kbits/s speed=1.09x    
+frame=9505
+fps=27.35
+stream_0_0_q=23.0
+bitrate=5471.2kbits/s
+total_size=260046896
+out_time_us=380240000
+out_time_ms=380240000
+out_time=00:06:20.240000
+dup_frames=0
+drop_frames=0
+speed=1.09x
+progress=continue
+frame= 9682 fps= 27 q=23.0 size=  256768KiB time=00:06:27.24 bitrate=5431.9kbits/s speed= 1.1x    
+frame=9682
+fps=27.46
+stream_0_0_q=23.0
+bitrate=5431.9kbits/s
+total_size=262930480
+out_time_us=387240000
+out_time_ms=387240000
+out_time=00:06:27.240000
+dup_frames=0
+drop_frames=0
+speed= 1.1x
+progress=continue
+frame= 9885 fps= 28 q=23.0 size=  259840KiB time=00:06:35.32 bitrate=5384.5kbits/s speed=1.11x    
+frame=9885
+fps=27.64
+stream_0_0_q=23.0
+bitrate=5384.5kbits/s
+total_size=266076208
+out_time_us=395320000
+out_time_ms=395320000
+out_time=00:06:35.320000
+dup_frames=0
+drop_frames=0
+speed=1.11x
+progress=continue
+frame=10083 fps= 28 q=23.0 size=  262912KiB time=00:06:43.36 bitrate=5339.6kbits/s speed=1.11x    
+frame=10083
+fps=27.80
+stream_0_0_q=23.0
+bitrate=5339.6kbits/s
+total_size=269221936
+out_time_us=403360000
+out_time_ms=403360000
+out_time=00:06:43.360000
+dup_frames=0
+drop_frames=0
+speed=1.11x
+progress=continue
+frame=10295 fps= 28 q=23.0 size=  266240KiB time=00:06:51.76 bitrate=5296.9kbits/s speed=1.12x    
+frame=10295
+fps=28.00
+stream_0_0_q=23.0
+bitrate=5296.9kbits/s
+total_size=272629808
+out_time_us=411760000
+out_time_ms=411760000
+out_time=00:06:51.760000
+dup_frames=0
+drop_frames=0
+speed=1.12x
+progress=continue
+frame=10517 fps= 28 q=23.0 size=  269056KiB time=00:07:00.72 bitrate=5238.9kbits/s speed=1.13x    
+frame=10517
+fps=28.21
+stream_0_0_q=23.0
+bitrate=5238.9kbits/s
+total_size=275513392
+out_time_us=420720000
+out_time_ms=420720000
+out_time=00:07:00.720000
+dup_frames=0
+drop_frames=0
+speed=1.13x
+progress=continue
+frame=10789 fps= 29 q=23.0 size=  271872KiB time=00:07:11.52 bitrate=5161.2kbits/s speed=1.14x    
+frame=10789
+fps=28.56
+stream_0_0_q=23.0
+bitrate=5161.2kbits/s
+total_size=278396976
+out_time_us=431520000
+out_time_ms=431520000
+out_time=00:07:11.520000
+dup_frames=0
+drop_frames=0
+speed=1.14x
+progress=continue
+frame=11016 fps= 29 q=23.0 size=  274944KiB time=00:07:20.68 bitrate=5111.1kbits/s speed=1.15x    
+frame=11016
+fps=28.78
+stream_0_0_q=23.0
+bitrate=5111.1kbits/s
+total_size=281542704
+out_time_us=440680000
+out_time_ms=440680000
+out_time=00:07:20.680000
+dup_frames=0
+drop_frames=0
+speed=1.15x
+progress=continue
+frame=11258 fps= 29 q=23.0 size=  278016KiB time=00:07:30.36 bitrate=5057.1kbits/s speed=1.16x    
+frame=11258
+fps=29.03
+stream_0_0_q=23.0
+bitrate=5057.1kbits/s
+total_size=284688432
+out_time_us=450360000
+out_time_ms=450360000
+out_time=00:07:30.360000
+dup_frames=0
+drop_frames=0
+speed=1.16x
+progress=continue
+frame=11458 fps= 29 q=23.0 size=  281088KiB time=00:07:38.32 bitrate=5024.2kbits/s speed=1.17x    
+frame=11458
+fps=29.17
+stream_0_0_q=23.0
+bitrate=5024.2kbits/s
+total_size=287834160
+out_time_us=458320000
+out_time_ms=458320000
+out_time=00:07:38.320000
+dup_frames=0
+drop_frames=0
+speed=1.17x
+progress=continue
+frame=11680 fps= 29 q=23.0 size=  284160KiB time=00:07:47.24 bitrate=4982.1kbits/s speed=1.17x    
+frame=11680
+fps=29.36
+stream_0_0_q=23.0
+bitrate=4982.1kbits/s
+total_size=290979888
+out_time_us=467240000
+out_time_ms=467240000
+out_time=00:07:47.240000
+dup_frames=0
+drop_frames=0
+speed=1.17x
+progress=continue
+frame=11896 fps= 30 q=23.0 size=  287232KiB time=00:07:55.88 bitrate=4944.5kbits/s speed=1.18x    
+frame=11896
+fps=29.53
+stream_0_0_q=23.0
+bitrate=4944.5kbits/s
+total_size=294125616
+out_time_us=475880000
+out_time_ms=475880000
+out_time=00:07:55.880000
+dup_frames=0
+drop_frames=0
+speed=1.18x
+progress=continue
+frame=12074 fps= 30 q=23.0 size=  290304KiB time=00:08:03.00 bitrate=4923.7kbits/s speed=1.18x    
+frame=12074
+fps=29.60
+stream_0_0_q=23.0
+bitrate=4923.7kbits/s
+total_size=297271344
+out_time_us=483000000
+out_time_ms=483000000
+out_time=00:08:03.000000
+dup_frames=0
+drop_frames=0
+speed=1.18x
+progress=continue
+frame=12233 fps= 30 q=23.0 size=  293120KiB time=00:08:09.32 bitrate=4907.3kbits/s speed=1.18x    
+frame=12233
+fps=29.62
+stream_0_0_q=23.0
+bitrate=4907.3kbits/s
+total_size=300154928
+out_time_us=489320000
+out_time_ms=489320000
+out_time=00:08:09.320000
+dup_frames=0
+drop_frames=0
+speed=1.18x
+progress=continue
+frame=12393 fps= 30 q=23.0 size=  295936KiB time=00:08:15.72 bitrate=4890.5kbits/s speed=1.19x    
+frame=12393
+fps=29.65
+stream_0_0_q=23.0
+bitrate=4890.5kbits/s
+total_size=303038512
+out_time_us=495720000
+out_time_ms=495720000
+out_time=00:08:15.720000
+dup_frames=0
+drop_frames=0
+speed=1.19x
+progress=continue
+frame=12573 fps= 30 q=23.0 size=  299008KiB time=00:08:22.96 bitrate=4870.1kbits/s speed=1.19x    
+frame=12573
+fps=29.72
+stream_0_0_q=23.0
+bitrate=4870.1kbits/s
+total_size=306184240
+out_time_us=502960000
+out_time_ms=502960000
+out_time=00:08:22.960000
+dup_frames=0
+drop_frames=0
+speed=1.19x
+progress=continue
+frame=12774 fps= 30 q=23.0 size=  302080KiB time=00:08:31.00 bitrate=4842.7kbits/s speed=1.19x    
+frame=12774
+fps=29.84
+stream_0_0_q=23.0
+bitrate=4842.7kbits/s
+total_size=309329968
+out_time_us=511000000
+out_time_ms=511000000
+out_time=00:08:31.000000
+dup_frames=0
+drop_frames=0
+speed=1.19x
+progress=continue
+frame=12964 fps= 30 q=23.0 size=  305408KiB time=00:08:38.60 bitrate=4824.3kbits/s speed= 1.2x    
+frame=12964
+fps=29.94
+stream_0_0_q=23.0
+bitrate=4824.3kbits/s
+total_size=312737840
+out_time_us=518600000
+out_time_ms=518600000
+out_time=00:08:38.600000
+dup_frames=0
+drop_frames=0
+speed= 1.2x
+progress=continue
+frame=13184 fps= 30 q=23.0 size=  308224KiB time=00:08:47.40 bitrate=4787.6kbits/s speed= 1.2x    
+frame=13184
+fps=30.10
+stream_0_0_q=23.0
+bitrate=4787.6kbits/s
+total_size=315621424
+out_time_us=527400000
+out_time_ms=527400000
+out_time=00:08:47.400000
+dup_frames=0
+drop_frames=0
+speed= 1.2x
+progress=continue
+frame=13419 fps= 30 q=23.0 size=  311040KiB time=00:08:56.80 bitrate=4746.7kbits/s speed=1.21x    
+frame=13419
+fps=30.29
+stream_0_0_q=23.0
+bitrate=4746.7kbits/s
+total_size=318505008
+out_time_us=536800000
+out_time_ms=536800000
+out_time=00:08:56.800000
+dup_frames=0
+drop_frames=0
+speed=1.21x
+progress=continue
+frame=13645 fps= 30 q=23.0 size=  314112KiB time=00:09:05.84 bitrate=4714.2kbits/s speed=1.22x    
+frame=13645
+fps=30.45
+stream_0_0_q=23.0
+bitrate=4714.2kbits/s
+total_size=321650736
+out_time_us=545840000
+out_time_ms=545840000
+out_time=00:09:05.840000
+dup_frames=0
+drop_frames=0
+speed=1.22x
+progress=continue
+frame=13807 fps= 30 q=23.0 size=  317184KiB time=00:09:12.32 bitrate=4704.5kbits/s speed=1.22x    
+frame=13807
+fps=30.47
+stream_0_0_q=23.0
+bitrate=4704.5kbits/s
+total_size=324796464
+out_time_us=552320000
+out_time_ms=552320000
+out_time=00:09:12.320000
+dup_frames=0
+drop_frames=0
+speed=1.22x
+progress=continue
+frame=13956 fps= 30 q=23.0 size=  320256KiB time=00:09:18.24 bitrate=4699.7kbits/s speed=1.22x    
+frame=13956
+fps=30.46
+stream_0_0_q=23.0
+bitrate=4699.7kbits/s
+total_size=327942192
+out_time_us=558240000
+out_time_ms=558240000
+out_time=00:09:18.240000
+dup_frames=0
+drop_frames=0
+speed=1.22x
+progress=continue
+frame=14109 fps= 30 q=23.0 size=  323584KiB time=00:09:24.40 bitrate=4696.7kbits/s speed=1.22x    
+frame=14109
+fps=30.46
+stream_0_0_q=23.0
+bitrate=4696.7kbits/s
+total_size=331350064
+out_time_us=564400000
+out_time_ms=564400000
+out_time=00:09:24.400000
+dup_frames=0
+drop_frames=0
+speed=1.22x
+progress=continue
+frame=14315 fps= 31 q=20.0 size=  326656KiB time=00:09:32.64 bitrate=4673.0kbits/s speed=1.22x    
+frame=14315
+fps=30.58
+stream_0_0_q=20.0
+bitrate=4673.0kbits/s
+total_size=334495792
+out_time_us=572640000
+out_time_ms=572640000
+out_time=00:09:32.640000
+dup_frames=0
+drop_frames=0
+speed=1.22x
+progress=continue
+frame=14509 fps= 31 q=23.0 size=  330752KiB time=00:09:40.36 bitrate=4668.7kbits/s speed=1.23x    
+frame=14509
+fps=30.66
+stream_0_0_q=23.0
+bitrate=4668.7kbits/s
+total_size=338690096
+out_time_us=580360000
+out_time_ms=580360000
+out_time=00:09:40.360000
+dup_frames=0
+drop_frames=0
+speed=1.23x
+progress=continue
+frame=14672 fps= 31 q=23.0 size=  334592KiB time=00:09:46.88 bitrate=4670.4kbits/s speed=1.23x    
+frame=14672
+fps=30.68
+stream_0_0_q=23.0
+bitrate=4670.4kbits/s
+total_size=342622256
+out_time_us=586880000
+out_time_ms=586880000
+out_time=00:09:46.880000
+dup_frames=0
+drop_frames=0
+speed=1.23x
+progress=continue
+frame=14834 fps= 31 q=23.0 size=  338176KiB time=00:09:53.40 bitrate=4668.6kbits/s speed=1.23x    
+frame=14834
+fps=30.70
+stream_0_0_q=23.0
+bitrate=4668.6kbits/s
+total_size=346292272
+out_time_us=593400000
+out_time_ms=593400000
+out_time=00:09:53.400000
+dup_frames=0
+drop_frames=0
+speed=1.23x
+progress=continue
+frame=15035 fps= 31 q=23.0 size=  340992KiB time=00:10:01.44 bitrate=4644.5kbits/s speed=1.23x    
+frame=15035
+fps=30.79
+stream_0_0_q=23.0
+bitrate=4644.5kbits/s
+total_size=349175856
+out_time_us=601440000
+out_time_ms=601440000
+out_time=00:10:01.440000
+dup_frames=0
+drop_frames=0
+speed=1.23x
+progress=continue
+frame=15193 fps= 31 q=23.0 size=  343808KiB time=00:10:07.76 bitrate=4634.2kbits/s speed=1.23x    
+frame=15193
+fps=30.80
+stream_0_0_q=23.0
+bitrate=4634.2kbits/s
+total_size=352059440
+out_time_us=607760000
+out_time_ms=607760000
+out_time=00:10:07.760000
+dup_frames=0
+drop_frames=0
+speed=1.23x
+progress=continue
+frame=15368 fps= 31 q=23.0 size=  346624KiB time=00:10:14.76 bitrate=4618.9kbits/s speed=1.23x    
+frame=15368
+fps=30.84
+stream_0_0_q=23.0
+bitrate=4618.9kbits/s
+total_size=354943024
+out_time_us=614760000
+out_time_ms=614760000
+out_time=00:10:14.760000
+dup_frames=0
+drop_frames=0
+speed=1.23x
+progress=continue
+frame=15530 fps= 31 q=23.0 size=  349696KiB time=00:10:21.24 bitrate=4611.3kbits/s speed=1.23x    
+frame=15530
+fps=30.86
+stream_0_0_q=23.0
+bitrate=4611.3kbits/s
+total_size=358088752
+out_time_us=621240000
+out_time_ms=621240000
+out_time=00:10:21.240000
+dup_frames=0
+drop_frames=0
+speed=1.23x
+progress=continue
+frame=15700 fps= 31 q=23.0 size=  352256KiB time=00:10:28.04 bitrate=4594.7kbits/s speed=1.24x    
+frame=15700
+fps=30.88
+stream_0_0_q=23.0
+bitrate=4594.7kbits/s
+total_size=360710192
+out_time_us=628040000
+out_time_ms=628040000
+out_time=00:10:28.040000
+dup_frames=0
+drop_frames=0
+speed=1.24x
+progress=continue
+frame=15856 fps= 31 q=23.0 size=  355840KiB time=00:10:34.28 bitrate=4595.8kbits/s speed=1.24x    
+frame=15856
+fps=30.89
+stream_0_0_q=23.0
+bitrate=4595.8kbits/s
+total_size=364380208
+out_time_us=634280000
+out_time_ms=634280000
+out_time=00:10:34.280000
+dup_frames=0
+drop_frames=0
+speed=1.24x
+progress=continue
+frame=15967 fps= 31 q=23.0 size=  359424KiB time=00:10:38.72 bitrate=4609.8kbits/s speed=1.23x    
+frame=15967
+fps=30.80
+stream_0_0_q=23.0
+bitrate=4609.8kbits/s
+total_size=368050224
+out_time_us=638720000
+out_time_ms=638720000
+out_time=00:10:38.720000
+dup_frames=0
+drop_frames=0
+speed=1.23x
+progress=continue
+frame=16132 fps= 31 q=23.0 size=  363008KiB time=00:10:45.32 bitrate=4608.2kbits/s speed=1.23x    
+frame=16132
+fps=30.82
+stream_0_0_q=23.0
+bitrate=4608.2kbits/s
+total_size=371720240
+out_time_us=645320000
+out_time_ms=645320000
+out_time=00:10:45.320000
+dup_frames=0
+drop_frames=0
+speed=1.23x
+progress=continue
+frame=16293 fps= 31 q=23.0 size=  366592KiB time=00:10:51.76 bitrate=4607.7kbits/s speed=1.23x    
+frame=16293
+fps=30.83
+stream_0_0_q=23.0
+bitrate=4607.7kbits/s
+total_size=375390256
+out_time_us=651760000
+out_time_ms=651760000
+out_time=00:10:51.760000
+dup_frames=0
+drop_frames=0
+speed=1.23x
+progress=continue
+frame=16443 fps= 31 q=23.0 size=  370176KiB time=00:10:57.76 bitrate=4610.3kbits/s speed=1.23x    
+frame=16443
+fps=30.82
+stream_0_0_q=23.0
+bitrate=4610.3kbits/s
+total_size=379060272
+out_time_us=657760000
+out_time_ms=657760000
+out_time=00:10:57.760000
+dup_frames=0
+drop_frames=0
+speed=1.23x
+progress=continue
+frame=16582 fps= 31 q=23.0 size=  373760KiB time=00:11:03.32 bitrate=4615.9kbits/s speed=1.23x    
+frame=16582
+fps=30.79
+stream_0_0_q=23.0
+bitrate=4615.9kbits/s
+total_size=382730288
+out_time_us=663320000
+out_time_ms=663320000
+out_time=00:11:03.320000
+dup_frames=0
+drop_frames=0
+speed=1.23x
+progress=continue
+frame=16727 fps= 31 q=23.0 size=  377344KiB time=00:11:09.12 bitrate=4619.8kbits/s speed=1.23x    
+frame=16727
+fps=30.78
+stream_0_0_q=23.0
+bitrate=4619.8kbits/s
+total_size=386400304
+out_time_us=669120000
+out_time_ms=669120000
+out_time=00:11:09.120000
+dup_frames=0
+drop_frames=0
+speed=1.23x
+progress=continue
+frame=16886 fps= 31 q=23.0 size=  380672KiB time=00:11:15.48 bitrate=4616.7kbits/s speed=1.23x    
+frame=16886
+fps=30.79
+stream_0_0_q=23.0
+bitrate=4616.7kbits/s
+total_size=389808176
+out_time_us=675480000
+out_time_ms=675480000
+out_time=00:11:15.480000
+dup_frames=0
+drop_frames=0
+speed=1.23x
+progress=continue
+frame=17033 fps= 31 q=23.0 size=  384000KiB time=00:11:21.36 bitrate=4616.8kbits/s speed=1.23x    
+frame=17033
+fps=30.77
+stream_0_0_q=23.0
+bitrate=4616.8kbits/s
+total_size=393216048
+out_time_us=681360000
+out_time_ms=681360000
+out_time=00:11:21.360000
+dup_frames=0
+drop_frames=0
+speed=1.23x
+progress=continue
+frame=17204 fps= 31 q=23.0 size=  387328KiB time=00:11:28.20 bitrate=4610.6kbits/s speed=1.23x    
+frame=17204
+fps=30.80
+stream_0_0_q=23.0
+bitrate=4610.6kbits/s
+total_size=396623920
+out_time_us=688200000
+out_time_ms=688200000
+out_time=00:11:28.200000
+dup_frames=0
+drop_frames=0
+speed=1.23x
+progress=continue
+frame=17369 fps= 31 q=23.0 size=  390400KiB time=00:11:34.80 bitrate=4603.0kbits/s speed=1.23x    
+frame=17369
+fps=30.82
+stream_0_0_q=23.0
+bitrate=4603.0kbits/s
+total_size=399769648
+out_time_us=694800000
+out_time_ms=694800000
+out_time=00:11:34.800000
+dup_frames=0
+drop_frames=0
+speed=1.23x
+progress=continue
+frame=17532 fps= 31 q=23.0 size=  394240KiB time=00:11:41.24 bitrate=4605.6kbits/s speed=1.23x    
+frame=17532
+fps=30.83
+stream_0_0_q=23.0
+bitrate=4605.6kbits/s
+total_size=403701808
+out_time_us=701240000
+out_time_ms=701240000
+out_time=00:11:41.240000
+dup_frames=0
+drop_frames=0
+speed=1.23x
+progress=continue
+frame=17693 fps= 31 q=23.0 size=  397568KiB time=00:11:47.76 bitrate=4601.7kbits/s speed=1.23x    
+frame=17693
+fps=30.84
+stream_0_0_q=23.0
+bitrate=4601.7kbits/s
+total_size=407109680
+out_time_us=707760000
+out_time_ms=707760000
+out_time=00:11:47.760000
+dup_frames=0
+drop_frames=0
+speed=1.23x
+progress=continue
+frame=17843 fps= 31 q=23.0 size=  400640KiB time=00:11:53.76 bitrate=4598.2kbits/s speed=1.23x    
+frame=17843
+fps=30.83
+stream_0_0_q=23.0
+bitrate=4598.2kbits/s
+total_size=410255408
+out_time_us=713760000
+out_time_ms=713760000
+out_time=00:11:53.760000
+dup_frames=0
+drop_frames=0
+speed=1.23x
+progress=continue
+frame=18010 fps= 31 q=23.0 size=  404224KiB time=00:12:00.44 bitrate=4596.4kbits/s speed=1.23x    
+frame=18010
+fps=30.85
+stream_0_0_q=23.0
+bitrate=4596.4kbits/s
+total_size=413925424
+out_time_us=720440000
+out_time_ms=720440000
+out_time=00:12:00.440000
+dup_frames=0
+drop_frames=0
+speed=1.23x
+progress=continue
+frame=18230 fps= 31 q=23.0 size=  407808KiB time=00:12:09.24 bitrate=4581.2kbits/s speed=1.24x    
+frame=18230
+fps=30.96
+stream_0_0_q=23.0
+bitrate=4581.2kbits/s
+total_size=417595440
+out_time_us=729240000
+out_time_ms=729240000
+out_time=00:12:09.240000
+dup_frames=0
+drop_frames=0
+speed=1.24x
+progress=continue
+frame=18397 fps= 31 q=23.0 size=  411136KiB time=00:12:15.92 bitrate=4576.6kbits/s speed=1.24x    
+frame=18397
+fps=30.98
+stream_0_0_q=23.0
+bitrate=4576.6kbits/s
+total_size=421003312
+out_time_us=735920000
+out_time_ms=735920000
+out_time=00:12:15.920000
+dup_frames=0
+drop_frames=0
+speed=1.24x
+progress=continue
+frame=18554 fps= 31 q=23.0 size=  414464KiB time=00:12:22.16 bitrate=4574.9kbits/s speed=1.24x    
+frame=18554
+fps=30.98
+stream_0_0_q=23.0
+bitrate=4574.9kbits/s
+total_size=424411184
+out_time_us=742160000
+out_time_ms=742160000
+out_time=00:12:22.160000
+dup_frames=0
+drop_frames=0
+speed=1.24x
+progress=continue
+frame=18724 fps= 31 q=23.0 size=  417792KiB time=00:12:28.92 bitrate=4570.0kbits/s speed=1.24x    
+frame=18724
+fps=31.01
+stream_0_0_q=23.0
+bitrate=4570.0kbits/s
+total_size=427819056
+out_time_us=748920000
+out_time_ms=748920000
+out_time=00:12:28.920000
+dup_frames=0
+drop_frames=0
+speed=1.24x
+progress=continue
+frame=18933 fps= 31 q=23.0 size=  421376KiB time=00:12:37.36 bitrate=4557.8kbits/s speed=1.24x    
+frame=18933
+fps=31.09
+stream_0_0_q=23.0
+bitrate=4557.8kbits/s
+total_size=431489072
+out_time_us=757360000
+out_time_ms=757360000
+out_time=00:12:37.360000
+dup_frames=0
+drop_frames=0
+speed=1.24x
+progress=continue
+frame=19158 fps= 31 q=23.0 size=  424960KiB time=00:12:46.36 bitrate=4542.6kbits/s speed=1.25x    
+frame=19158
+fps=31.21
+stream_0_0_q=23.0
+bitrate=4542.6kbits/s
+total_size=435159088
+out_time_us=766360000
+out_time_ms=766360000
+out_time=00:12:46.360000
+dup_frames=0
+drop_frames=0
+speed=1.25x
+progress=continue
+frame=19320 fps= 31 q=23.0 size=  428288KiB time=00:12:52.84 bitrate=4539.8kbits/s speed=1.25x    
+frame=19320
+fps=31.21
+stream_0_0_q=23.0
+bitrate=4539.8kbits/s
+total_size=438566960
+out_time_us=772840000
+out_time_ms=772840000
+out_time=00:12:52.840000
+dup_frames=0
+drop_frames=0
+speed=1.25x
+progress=continue
+frame=19479 fps= 31 q=23.0 size=  431616KiB time=00:12:59.20 bitrate=4537.7kbits/s speed=1.25x    
+frame=19479
+fps=31.22
+stream_0_0_q=23.0
+bitrate=4537.7kbits/s
+total_size=441974832
+out_time_us=779200000
+out_time_ms=779200000
+out_time=00:12:59.200000
+dup_frames=0
+drop_frames=0
+speed=1.25x
+progress=continue
+[vost#0:0/libx264 @ 000001be44aa1300] Error submitting a packet to the muxer: No space left on device
+    Last message repeated 1 times
+[out#0/mp4 @ 000001be42b7e0c0] Error muxing a packet
+[out#0/mp4 @ 000001be42b7e0c0] Task finished with error code: -28 (No space left on device)
+[out#0/mp4 @ 000001be42b7e0c0] Terminating thread with return code -28 (No space left on device)
+[mp4 @ 000001be42b79800] Starting second pass: moving the moov atom to the beginning of the file
+[out#0/mp4 @ 000001be42b7e0c0] Error writing trailer: No space left on device
+[out#0/mp4 @ 000001be42b7e0c0] Error closing file: No space left on device
+[out#0/mp4 @ 000001be42b7e0c0] video:416551KiB audio:18462KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown
+frame=19607 fps= 31 q=-1.0 Lsize=  434688KiB time=00:13:04.32 bitrate=4540.2kbits/s speed=1.24x    
+frame=19607
+fps=31.11
+stream_0_0_q=-1.0
+bitrate=4540.2kbits/s
+total_size=445120560
+out_time_us=784320000
+out_time_ms=784320000
+out_time=00:13:04.320000
+dup_frames=0
+drop_frames=0
+speed=1.24x
+progress=end
+[libx264 @ 000001be44aa1580] frame I:788   Avg QP:12.32  size:112777
+[libx264 @ 000001be44aa1580] frame P:18895 Avg QP:16.55  size: 17948
+[libx264 @ 000001be44aa1580] mb I  I16..4: 21.6% 60.8% 17.7%
+[libx264 @ 000001be44aa1580] mb P  I16..4:  2.5%  6.6%  0.6%  P16..4: 27.5%  8.5%  3.5%  0.0%  0.0%    skip:50.8%
+[libx264 @ 000001be44aa1580] 8x8 transform intra:65.8% inter:81.5%
+[libx264 @ 000001be44aa1580] coded y,uvDC,uvAC intra: 45.4% 46.3% 21.7% inter: 11.3% 9.3% 0.3%
+[libx264 @ 000001be44aa1580] i16 v,h,dc,p: 40% 21%  7% 33%
+[libx264 @ 000001be44aa1580] i8 v,h,dc,ddl,ddr,vr,hd,vl,hu: 37% 19% 20%  3%  4%  5%  4%  5%  4%
+[libx264 @ 000001be44aa1580] i4 v,h,dc,ddl,ddr,vr,hd,vl,hu: 42% 22% 10%  3%  6%  5%  4%  4%  3%
+[libx264 @ 000001be44aa1580] i8c dc,h,v,p: 61% 17% 18%  4%
+[libx264 @ 000001be44aa1580] Weighted P-Frames: Y:1.3% UV:0.7%
+[libx264 @ 000001be44aa1580] ref P L0: 64.5%  7.3% 19.4%  8.8%  0.0%
+[libx264 @ 000001be44aa1580] kb/s:4348.90
+[aac @ 000001be45c16840] Qavg: 1330.393
+Conversion failed!

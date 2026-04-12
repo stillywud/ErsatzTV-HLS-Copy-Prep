@@ -1,0 +1,86 @@
+[2026-03-25T04:53:54] SOURCE: D:\apps\ErsatzTV-HLS-Copy-Prep\source\17.mp4
+[2026-03-25T04:53:54] TARGET: D:\apps\ErsatzTV-HLS-Copy-Prep\target\17.mp4
+[2026-03-25T04:53:54] FPS: 25.000000
+[2026-03-25T04:53:54] CMD: ["D:\\apps\\ErsatzTV-HLS-Copy-Prep\\bin\\ffmpeg.exe", "-y", "-hide_banner", "-loglevel", "info", "-stats_period", "5", "-progress", "pipe:1", "-i", "D:\\apps\\ErsatzTV-HLS-Copy-Prep\\source\\17.mp4", "-map", "0:v:0", "-map", "0:a:0?", "-sn", "-dn", "-vf", "scale=trunc(iw/2)*2:trunc(ih/2)*2,setsar=1,fps=25", "-c:v", "libx264", "-preset", "medium", "-crf", "18", "-pix_fmt", "yuv420p", "-profile:v", "high", "-level", "4.1", "-g", "25", "-keyint_min", "25", "-sc_threshold", "0", "-bf", "0", "-force_key_frames", "expr:gte(t,n_forced*1)", "-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-ac", "2", "-movflags", "+faststart", "D:\\apps\\ErsatzTV-HLS-Copy-Prep\\target\\17.mp4"]
+
+ffmpeg stats and -progress period set to 5.
+Input #0, mov,mp4,m4a,3gp,3g2,mj2, from 'D:\apps\ErsatzTV-HLS-Copy-Prep\source\17.mp4':
+  Metadata:
+    major_brand     : isom
+    minor_version   : 512
+    compatible_brands: isomiso2avc1mp41
+    date            : 2023-08-23T11:53:28.1306715+08:00
+    encoder         : Lavf58.32.104
+  Duration: 00:25:32.14, start: 0.000000, bitrate: 1537 kb/s
+  Stream #0:0[0x1](und): Video: h264 (High) (avc1 / 0x31637661), yuv420p(tv, bt709, progressive), 1920x1080 [SAR 1:1 DAR 16:9], 1438 kb/s, 25 fps, 25 tbr, 90k tbn (default)
+      Metadata:
+        handler_name    : VideoHandler
+        vendor_id       : [0][0][0][0]
+  Stream #0:1[0x2](und): Audio: aac (LC) (mp4a / 0x6134706D), 48000 Hz, stereo, fltp, 93 kb/s (default)
+      Metadata:
+        handler_name    : SoundHandler
+        vendor_id       : [0][0][0][0]
+Stream mapping:
+  Stream #0:0 -> #0:0 (h264 (native) -> h264 (libx264))
+  Stream #0:1 -> #0:1 (aac (native) -> aac (native))
+Press [q] to stop, [?] for help
+[libx264 @ 000001bb0b2dfd80] using SAR=1/1
+[libx264 @ 000001bb0b2dfd80] using cpu capabilities: MMX2 SSE2Fast SSSE3 SSE4.2 AVX
+[libx264 @ 000001bb0b2dfd80] profile High, level 4.1, 4:2:0, 8-bit
+[libx264 @ 000001bb0b2dfd80] 264 - core 165 - H.264/MPEG-4 AVC codec - Copyleft 2003-2025 - http://www.videolan.org/x264.html - options: cabac=1 ref=3 deblock=1:0:0 analyse=0x3:0x113 me=hex subme=7 psy=1 psy_rd=1.00:0.00 mixed_ref=1 me_range=16 chroma_me=1 trellis=1 8x8dct=1 cqm=0 deadzone=21,11 fast_pskip=1 chroma_qp_offset=-2 threads=12 lookahead_threads=2 sliced_threads=0 nr=0 decimate=1 interlaced=0 bluray_compat=0 constrained_intra=0 bframes=0 weightp=2 keyint=25 keyint_min=13 scenecut=0 intra_refresh=0 rc_lookahead=25 rc=crf mbtree=1 crf=18.0 qcomp=0.60 qpmin=0 qpmax=69 qpstep=4 ip_ratio=1.40 aq=1:1.00
+Output #0, mp4, to 'D:\apps\ErsatzTV-HLS-Copy-Prep\target\17.mp4':
+  Metadata:
+    major_brand     : isom
+    minor_version   : 512
+    compatible_brands: isomiso2avc1mp41
+    date            : 2023-08-23T11:53:28.1306715+08:00
+    encoder         : Lavf61.7.100
+  Stream #0:0(und): Video: h264 (avc1 / 0x31637661), yuv420p(tv, bt709, progressive), 1920x1080 [SAR 1:1 DAR 16:9], q=2-31, 25 fps, 12800 tbn (default)
+      Metadata:
+        handler_name    : VideoHandler
+        vendor_id       : [0][0][0][0]
+        encoder         : Lavc61.19.101 libx264
+      Side data:
+        cpb: bitrate max/min/avg: 0/0/0 buffer size: 0 vbv_delay: N/A
+  Stream #0:1(und): Audio: aac (LC) (mp4a / 0x6134706D), 48000 Hz, stereo, fltp, 192 kb/s (default)
+      Metadata:
+        handler_name    : SoundHandler
+        vendor_id       : [0][0][0][0]
+        encoder         : Lavc61.19.101 aac
+[vost#0:0/libx264 @ 000001bb0b2dfa00] Error submitting a packet to the muxer: No space left on device
+    Last message repeated 1 times
+[out#0/mp4 @ 000001bb0d1926c0] Error muxing a packet
+[out#0/mp4 @ 000001bb0d1926c0] Task finished with error code: -28 (No space left on device)
+[out#0/mp4 @ 000001bb0d1926c0] Terminating thread with return code -28 (No space left on device)
+[mp4 @ 000001bb0b33d100] Starting second pass: moving the moov atom to the beginning of the file
+[out#0/mp4 @ 000001bb0d1926c0] Error writing trailer: No space left on device
+[out#0/mp4 @ 000001bb0d1926c0] Error closing file: No space left on device
+[out#0/mp4 @ 000001bb0d1926c0] video:238KiB audio:73KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown
+frame=   18 fps=7.7 q=-1.0 Lsize=       0KiB time=00:00:00.76 bitrate=   0.5kbits/s speed=0.323x    
+frame=18
+fps=7.66
+stream_0_0_q=-1.0
+bitrate=   0.5kbits/s
+total_size=48
+out_time_us=760000
+out_time_ms=760000
+out_time=00:00:00.760000
+dup_frames=0
+drop_frames=0
+speed=0.323x
+progress=end
+[libx264 @ 000001bb0b2dfd80] frame I:4     Avg QP: 8.78  size: 49668
+[libx264 @ 000001bb0b2dfd80] frame P:86    Avg QP:13.96  size: 14023
+[libx264 @ 000001bb0b2dfd80] mb I  I16..4: 58.5% 32.0%  9.4%
+[libx264 @ 000001bb0b2dfd80] mb P  I16..4:  4.7% 15.5%  0.9%  P16..4: 13.2%  3.9%  1.5%  0.0%  0.0%    skip:60.2%
+[libx264 @ 000001bb0b2dfd80] 8x8 transform intra:65.9% inter:76.3%
+[libx264 @ 000001bb0b2dfd80] coded y,uvDC,uvAC intra: 14.6% 31.2% 13.4% inter: 6.4% 12.3% 1.9%
+[libx264 @ 000001bb0b2dfd80] i16 v,h,dc,p: 60% 23% 10%  7%
+[libx264 @ 000001bb0b2dfd80] i8 v,h,dc,ddl,ddr,vr,hd,vl,hu: 47% 14% 37%  1%  0%  0%  0%  0%  1%
+[libx264 @ 000001bb0b2dfd80] i4 v,h,dc,ddl,ddr,vr,hd,vl,hu: 49% 25% 14%  2%  2%  2%  2%  2%  1%
+[libx264 @ 000001bb0b2dfd80] i8c dc,h,v,p: 78% 11% 10%  1%
+[libx264 @ 000001bb0b2dfd80] Weighted P-Frames: Y:17.4% UV:14.0%
+[libx264 @ 000001bb0b2dfd80] ref P L0: 74.6%  5.6% 14.2%  5.1%  0.5%
+[libx264 @ 000001bb0b2dfd80] kb/s:3121.53
+[aac @ 000001bb0d0be040] Qavg: 1866.565
+Conversion failed!
