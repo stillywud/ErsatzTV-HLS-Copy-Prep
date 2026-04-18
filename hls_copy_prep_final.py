@@ -18,18 +18,22 @@ VIDEO_EXTS = {'.mp4', '.mkv', '.avi', '.mov', '.m4v', '.ts', '.m2ts', '.wmv'}
 ENCODER_MODE = 'auto'
 
 # ── CPU 编码参数（libx264）──
-FIXED_PRESET = 'slow'
-FIXED_CRF = '20'
+FIXED_PRESET = 'medium'
+FIXED_CRF = '23'
 
 # ── AMF GPU 编码参数（h264_amf）──
 AMF_USAGE = 'transcoding'          # transcoding / high_quality
 AMF_QUALITY = 'quality'            # balanced / speed / quality
 AMF_RATE_CONTROL = 'qvbr'          # qvbr = Quality Variable Bitrate
-AMF_QVBR_QUALITY_LEVEL = 20       # 0-51, 数值越小质量越高（类似 CRF 概念）
-AMF_PREANALYSIS = True             # 启用预分析，提升质量
+AMF_QVBR_QUALITY_LEVEL = 23       # 0-51, 与 CRF 23 对齐，平衡质量与体积
+AMF_PREANALYSIS = False            # 禁用预分析（会限制并发流水线，不利于高fps转码）
 AMF_VBAQ = True                    # 启用 VBAQ，提升主观质量
 AMF_ENFORCE_HRD = False           # 不强制 HRD（VBR 模式下无需）
-AMF_MAX_B_FRAMES = 0               # 禁用 B 帧（兼容 HLS 流式播放）
+AMF_ASYNC_DEPTH = 4               # 异步流水线深度，增大可提升GPU利用率（4-8）
+AMF_MAX_B_FRAMES = 2               # 启用 B 帧（提升压缩效率，减少 10-15% 体积）
+AMF_MAXRATE = '4000k'             # 码率峰值上限，复杂场景不超过此值
+AMF_BUFSIZE = '8000k'             # CPB缓冲大小，2x maxrate 让 QVBR 真正发挥动态码率
+AMF_LEVEL = '4.0'                  # H.264 Level 4.0，1080p最低兼容底线（低端Android必需）
 
 # ── 通用参数 ──────────────────────────────────────────────────
 FIXED_AUDIO_BITRATE = '160k'
@@ -41,7 +45,7 @@ FIXED_PROFILE = 'high'
 FIXED_LEVEL = 'auto'
 MAX_WIDTH = 1920
 MAX_HEIGHT = 1080
-KEYFRAME_SECONDS = 1
+KEYFRAME_SECONDS = 2
 ETA_LOWER_MULTIPLIER = 0.8
 ETA_UPPER_MULTIPLIER = 2.5
 MOVE_RETRY_COUNT = 5
@@ -164,7 +168,7 @@ def probe_media(ffprobe: Path, src: Path) -> dict:
     cmd = [
         str(ffprobe),
         '-v', 'error',
-        '-show_entries', 'stream=index,codec_name,codec_type,avg_frame_rate,r_frame_rate,width,height,sample_aspect_ratio,channels,sample_rate:format=duration',
+        '-show_entries', 'stream=index,codec_name,codec_type,avg_frame_rate,r_frame_rate,width,height,sample_aspect_ratio,channels,sample_rate,bit_rate,pix_fmt,profile:format=duration',
         '-of', 'json',
         str(src),
     ]
@@ -264,8 +268,8 @@ def print_banner() -> None:
     print('ErsatzTV HLS Copy 预处理工具（最终定版参数）')
     print('=' * 72)
     print('目标：离线一次性整理源文件，播放时继续使用 copy 模式')
-    print('固定参数：H.264 / AAC / 1080p封顶 / 保持原fps但转CFR / 1秒GOP / 1秒强制关键帧')
-    print('固定质量参数：preset=slow, crf=20, audio=160k, level=auto')
+    print('固定参数：H.264 / AAC / 1080p封顶 / 保持原fps但转CFR / 2秒GOP / 2秒强制关键帧')
+    print('固定质量参数：preset=medium, crf=23, audio=160k, level=auto')
     print('')
 
 
@@ -434,7 +438,72 @@ def is_duration_close(expected: Optional[float], actual: Optional[float]) -> boo
     return abs(expected - actual) <= tolerance
 
 
-def validate_existing_target(ffprobe: Path, target: Path, expected_duration: Optional[float]) -> tuple[bool, str, Optional[dict]]:
+def assess_source_compliance(meta: dict) -> tuple[bool, list[str]]:
+    """Check if the source file already meets all ErsatzTV copy-mode requirements.
+
+    Returns (is_compliant, list_of_issues).
+    If is_compliant=True, the file can be moved to done without transcoding.
+    """
+    issues = []
+    video = meta.get('video') or {}
+    audio = meta.get('audio')
+    fps = meta.get('fps') or 0
+
+    # ── Video codec must be h264 ──
+    video_codec = (video.get('codec_name') or '').lower()
+    if video_codec != 'h264':
+        issues.append(f'视频编码为 {video_codec}，不是 h264')
+
+    # ── Resolution must be even dimensions, within 1080p cap ──
+    width = int(video.get('width') or 0)
+    height = int(video.get('height') or 0)
+    if width % 2 != 0 or height % 2 != 0:
+        issues.append(f'分辨率 {width}x{height} 包含奇数边')
+    expected_w, expected_h = compute_target_resolution(width, height)
+    if width > expected_w or height > expected_h:
+        issues.append(f'分辨率 {width}x{height} 超过 1080p 上限')
+
+    # ── Pixel format must be yuv420p ──
+    pix_fmt = video.get('pix_fmt') or ''
+    if pix_fmt != FIXED_PIXEL_FORMAT:
+        issues.append(f'像素格式为 {pix_fmt}，不是 {FIXED_PIXEL_FORMAT}')
+
+    # ── SAR must be 1:1 (or empty/N/A) ──
+    sar = video.get('sample_aspect_ratio') or ''
+    if sar not in (None, '', '1:1', 'N/A', '0:1'):
+        issues.append(f'SAR 为 {sar}，不是 1:1')
+
+    # ── Audio: if present, must be aac with correct params ──
+    if audio is not None:
+        audio_codec = (audio.get('codec_name') or '').lower()
+        if audio_codec != 'aac':
+            issues.append(f'音频编码为 {audio_codec}，不是 aac')
+
+        audio_bitrate = parse_rate(audio.get('bit_rate') or '')
+        expected_bitrate = parse_rate(FIXED_AUDIO_BITRATE)
+        if audio_bitrate is not None and expected_bitrate is not None:
+            if audio_bitrate > expected_bitrate:
+                issues.append(
+                    f'音频码率 {audio_bitrate:.0f} 高于目标上限 {expected_bitrate:.0f}'
+                )
+
+        audio_rate = int(audio.get('sample_rate') or 0)
+        if audio_rate != int(FIXED_AUDIO_RATE):
+            issues.append(f'音频采样率 {audio_rate}，不是 {FIXED_AUDIO_RATE}')
+
+        audio_channels = int(audio.get('channels') or 0)
+        if audio_channels != int(FIXED_AUDIO_CHANNELS):
+            issues.append(f'音频声道 {audio_channels}，不是 {FIXED_AUDIO_CHANNELS}')
+
+    return len(issues) == 0, issues
+
+
+def validate_existing_target(
+    ffprobe: Path,
+    target: Path,
+    src_meta: dict,
+    encoder: str = 'libx264',
+) -> tuple[bool, str, Optional[dict]]:
     if not target.exists() or target.stat().st_size <= 0:
         return False, '目标文件不存在或大小为 0', None
     try:
@@ -444,9 +513,79 @@ def validate_existing_target(ffprobe: Path, target: Path, expected_duration: Opt
     if not meta.get('video'):
         return False, '目标文件缺少视频流', meta
     actual_duration = meta.get('duration')
-    if not is_duration_close(expected_duration, actual_duration):
-        return False, f'目标文件时长不匹配（源={format_seconds(expected_duration)}，目标={format_seconds(actual_duration)}）', meta
-    return True, '目标文件校验通过', meta
+    if not is_duration_close(src_meta.get('duration'), actual_duration):
+        return False, (
+            f'目标文件时长不匹配（源={format_seconds(src_meta.get("duration"))}，'
+            f'目标={format_seconds(actual_duration)}）'
+        ), meta
+    params_match, mismatches = _compare_encoding_params(src_meta, meta, encoder)
+    if not params_match:
+        return False, '目标文件编码参数不匹配：' + '；'.join(mismatches), meta
+    return True, '目标文件校验通过（参数完全匹配，无需重新转码）', meta
+
+
+def _compare_encoding_params(
+    src_meta: dict,
+    tgt_meta: dict,
+    encoder: str = 'libx264',
+) -> tuple[bool, list[str]]:
+    mismatches = []
+    tgt_video = tgt_meta.get('video') or {}
+    src_video = src_meta.get('video') or {}
+
+    tgt_video_codec = (tgt_video.get('codec_name') or '').lower()
+    if tgt_video_codec != 'h264':
+        mismatches.append(f'目标视频编码为 {tgt_video_codec}，不是 h264')
+
+    src_width = int(src_video.get('width') or 0)
+    src_height = int(src_video.get('height') or 0)
+    tgt_width = int(tgt_video.get('width') or 0)
+    tgt_height = int(tgt_video.get('height') or 0)
+    expected_tw, expected_th = compute_target_resolution(src_width, src_height)
+    if tgt_width != expected_tw or tgt_height != expected_th:
+        mismatches.append(f'目标分辨率 {tgt_width}x{tgt_height}，期望 {expected_tw}x{expected_th}')
+
+    src_fps = src_meta.get('fps') or 0
+    tgt_fps = tgt_meta.get('fps') or 0
+    if abs(tgt_fps - src_fps) > 0.01:
+        mismatches.append(f'目标帧率 {tgt_fps:.3f}fps，源帧率 {src_fps:.3f}fps')
+
+    tgt_audio = tgt_meta.get('audio')
+    src_audio = src_meta.get('audio')
+    has_audio = src_audio is not None
+
+    if has_audio:
+        tgt_audio_codec = (tgt_audio.get('codec_name') or '').lower() if tgt_audio else ''
+        if tgt_audio_codec != 'aac':
+            mismatches.append(f'目标音频编码为 {tgt_audio_codec}，不是 aac')
+        tgt_bitrate_str = tgt_audio.get('bit_rate') or ''
+        if tgt_bitrate_str:
+            tgt_bitrate = parse_rate(tgt_bitrate_str)
+            expected_bitrate = parse_rate(FIXED_AUDIO_BITRATE)
+            if tgt_bitrate is not None and expected_bitrate is not None:
+                if abs(tgt_bitrate - expected_bitrate) > 1000:
+                    mismatches.append(f'目标音频码率 {tgt_bitrate:.0f}，期望 {expected_bitrate:.0f}')
+        tgt_sample_rate = int(tgt_audio.get('sample_rate') or 0)
+        expected_sample_rate = int(FIXED_AUDIO_RATE)
+        if tgt_sample_rate != expected_sample_rate:
+            mismatches.append(f'目标音频采样率 {tgt_sample_rate}，期望 {expected_sample_rate}')
+        tgt_channels = int(tgt_audio.get('channels') or 0)
+        expected_channels = int(FIXED_AUDIO_CHANNELS)
+        if tgt_channels != expected_channels:
+            mismatches.append(f'目标音频声道 {tgt_channels}，期望 {expected_channels}')
+    elif tgt_audio is not None:
+        mismatches.append('源无音频但目标有音频')
+
+    tgt_pix_fmt = tgt_video.get('pix_fmt') or ''
+    if tgt_pix_fmt != FIXED_PIXEL_FORMAT:
+        mismatches.append(f'目标像素格式 {tgt_pix_fmt}，期望 {FIXED_PIXEL_FORMAT}')
+
+    tgt_profile = (tgt_video.get('profile') or '').lower()
+    expected_profile = FIXED_PROFILE.lower()
+    if tgt_profile and tgt_profile != expected_profile:
+        mismatches.append(f'目标 profile {tgt_profile}，期望 {expected_profile}')
+
+    return len(mismatches) == 0, mismatches
 
 
 def move_to_done(src: Path, done_root: Path, source_root: Path) -> Path:
@@ -500,7 +639,9 @@ def build_command(ffmpeg: Path, src: Path, dst: Path, fps: float, src_width: int
             '-rc', AMF_RATE_CONTROL,
             '-qvbr_quality_level', str(AMF_QVBR_QUALITY_LEVEL),
             '-profile:v', 'high',
-            '-level:v', 'auto',
+            '-level:v', AMF_LEVEL,
+            '-maxrate', AMF_MAXRATE,
+            '-bufsize', AMF_BUFSIZE,
             '-g', str(gop),
             '-keyint_min', str(gop),
             '-bf', str(AMF_MAX_B_FRAMES),
@@ -508,6 +649,7 @@ def build_command(ffmpeg: Path, src: Path, dst: Path, fps: float, src_width: int
             '-vbaq', '1' if AMF_VBAQ else '0',
             '-enforce_hrd', '1' if AMF_ENFORCE_HRD else '0',
             '-force_key_frames', f'expr:gte(t,n_forced*{KEYFRAME_SECONDS})',
+            '-async_depth', str(AMF_ASYNC_DEPTH),
         ]
     else:
         # ── CPU libx264 编码路径（原逻辑） ──
@@ -521,7 +663,7 @@ def build_command(ffmpeg: Path, src: Path, dst: Path, fps: float, src_width: int
             '-g', str(gop),
             '-keyint_min', str(gop),
             '-sc_threshold', '0',
-            '-bf', '0',
+            '-bf', '3',
             '-force_key_frames', f'expr:gte(t,n_forced*{KEYFRAME_SECONDS})',
         ]
 
@@ -630,7 +772,7 @@ def print_fixed_params(encoder: str = 'libx264') -> None:
     print(f'  - GOP: {KEYFRAME_SECONDS}秒')
     print(f'  - 强制关键帧: 每{KEYFRAME_SECONDS}秒')
     print(f'  - 编码器模式: {ENCODER_MODE}（auto=自动检测GPU, cpu=强制CPU, amf=强制GPU）')
-    print(f'  - 其他: bf=0, SAR=1:1, avoid_negative_ts=make_zero, movflags=+faststart')
+    print(f'  - 其他: SAR=1:1, avoid_negative_ts=make_zero, movflags=+faststart')
     print('')
 
 
@@ -917,40 +1059,58 @@ def execute_run(source_dir: Path, target_dir: Path, done_dir: Path, logs_dir: Pa
             })
 
             print(f'    输入: {meta["video"].get("width")}x{meta["video"].get("height")} | {meta["fps"]:.3f}fps | 时长 {format_seconds(meta["duration"])}')
-            print(f'    输出: {dst}')
-            print(f'    日志: {file_log}')
 
-            existing_ok, existing_reason, existing_meta = validate_existing_target(ffprobe, dst, meta['duration'])
-            if existing_ok:
-                print('    检测到目标文件已存在且校验通过，本次不重复转码。')
+            # ── Step 1: 判断 source 文件本身是否符合所有标准 ──
+            src_compliant, src_issues = assess_source_compliance(meta)
+
+            if src_compliant:
+                # 源文件已完全符合要求，直接移至 done，无需转码
+                print('    源文件已符合所有标准（无需转码），直接移至 done。')
                 done_path = move_to_done(src, done_dir, source_dir)
                 record['done_path'] = str(done_path)
-                record['status'] = 'recovered_existing_target'
-                record['note'] = '目标文件已存在且有效，已仅移动 source 到 done，避免重复转码'
-                if existing_meta:
-                    record['target_duration_seconds'] = existing_meta.get('duration')
+                record['status'] = 'ok_source_compliant'
+                record['note'] = '源文件已符合 HLS copy 模式全部要求，无需任何转码处理'
                 processed += 1
-                recovered += 1
-                print(f'    结果: 已修复历史残留，原文件已移动到 {done_path}')
+                print(f'    结果: 符合标准，原文件已移动到 {done_path}')
             else:
-                if dst.exists():
-                    print(f'    注意: 目标文件已存在，但校验未通过：{existing_reason}')
-                    print('    将重新转码并覆盖目标文件。')
+                # 源文件不符合标准，需要处理
+                reasons_str = '；'.join(src_issues)
+                print(f'    源文件不符合标准，原因：{reasons_str}')
 
-                rc, _, err = run_one(ffmpeg, src, dst, meta, file_log, encoder=encoder)
-                if rc != 0:
-                    raise RuntimeError(err or f'ffmpeg exited with code {rc}')
+                # ── Step 2: 检查 target 是否已存在且有效 ──
+                existing_ok, existing_reason, existing_meta = validate_existing_target(ffprobe, dst, meta, encoder)
+                if existing_ok:
+                    print('    目标文件已存在且校验通过，本次不重复转码。')
+                    done_path = move_to_done(src, done_dir, source_dir)
+                    record['done_path'] = str(done_path)
+                    record['status'] = 'recovered_existing_target'
+                    record['note'] = existing_reason
+                    if existing_meta:
+                        record['target_duration_seconds'] = existing_meta.get('duration')
+                    processed += 1
+                    recovered += 1
+                    print(f'    结果: 目标已存在无需转码，原文件已移动到 {done_path}')
+                else:
+                    if dst.exists():
+                        print(f'    目标文件已存在但校验未通过：{existing_reason}')
+                        print('    将重新转码并覆盖目标文件。')
 
-                target_ok, target_reason, target_meta = validate_existing_target(ffprobe, dst, meta['duration'])
-                if not target_ok:
-                    raise RuntimeError(f'转码完成后目标文件校验失败：{target_reason}')
+                    print(f'    输出: {dst}')
+                    print(f'    日志: {file_log}')
+                    rc, _, err = run_one(ffmpeg, src, dst, meta, file_log, encoder=encoder)
+                    if rc != 0:
+                        raise RuntimeError(err or f'ffmpeg exited with code {rc}')
 
-                done_path = move_to_done(src, done_dir, source_dir)
-                record['done_path'] = str(done_path)
-                record['status'] = 'ok'
-                record['target_duration_seconds'] = target_meta.get('duration') if target_meta else None
-                processed += 1
-                print(f'    结果: 成功，原文件已移动到 {done_path}')
+                    target_ok, target_reason, target_meta = validate_existing_target(ffprobe, dst, meta, encoder)
+                    if not target_ok:
+                        raise RuntimeError(f'转码完成后目标文件校验失败：{target_reason}')
+
+                    done_path = move_to_done(src, done_dir, source_dir)
+                    record['done_path'] = str(done_path)
+                    record['status'] = 'ok'
+                    record['target_duration_seconds'] = target_meta.get('duration') if target_meta else None
+                    processed += 1
+                    print(f'    结果: 成功，原文件已移动到 {done_path}')
 
         except Exception as e:
             failed += 1
