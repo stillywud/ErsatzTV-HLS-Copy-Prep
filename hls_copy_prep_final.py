@@ -30,7 +30,7 @@ AMF_PREANALYSIS = False            # 禁用预分析（会限制并发流水线�
 AMF_VBAQ = True                    # 启用 VBAQ，提升主观质量
 AMF_ENFORCE_HRD = False           # 不强制 HRD（VBR 模式下无需）
 AMF_ASYNC_DEPTH = 4               # 异步流水线深度，增大可提升GPU利用率（4-8）
-AMF_MAX_B_FRAMES = 2               # 启用 B 帧（提升压缩效率，减少 10-15% 体积）
+AMF_MAX_B_FRAMES = 0               # 禁用 B 帧（HLS copy 模式下避免卡顿）
 AMF_MAXRATE = '4000k'             # 码率峰值上限，复杂场景不超过此值
 AMF_BUFSIZE = '8000k'             # CPB缓冲大小，2x maxrate 让 QVBR 真正发挥动态码率
 AMF_LEVEL = '4.0'                  # H.264 Level 4.0，1080p最低兼容底线（低端Android必需）
@@ -45,7 +45,7 @@ FIXED_PROFILE = 'high'
 FIXED_LEVEL = 'auto'
 MAX_WIDTH = 1920
 MAX_HEIGHT = 1080
-KEYFRAME_SECONDS = 2
+KEYFRAME_SECONDS = 1
 ETA_LOWER_MULTIPLIER = 0.8
 ETA_UPPER_MULTIPLIER = 2.5
 MOVE_RETRY_COUNT = 5
@@ -162,6 +162,41 @@ def ensure_dir(path: Path) -> Path:
 def list_videos(source_dir: Path, recursive: bool = True) -> list[Path]:
     iterator = source_dir.rglob('*') if recursive else source_dir.glob('*')
     return sorted(p for p in iterator if p.is_file() and p.suffix.lower() in VIDEO_EXTS)
+
+
+def probe_keyframe_interval(ffprobe: Path, src: Path) -> Optional[float]:
+    """Probe the maximum keyframe interval in seconds by sampling keyframe timestamps."""
+    cmd = [
+        str(ffprobe),
+        '-v', 'error',
+        '-select_streams', 'v:0',
+        '-show_entries', 'packet=pts_time,flags',
+        '-of', 'csv',
+        str(src),
+    ]
+    try:
+        p = subprocess.run(cmd, text=True, capture_output=True, timeout=120)
+        if p.returncode != 0:
+            return None
+        last_kf = None
+        max_gap = 0.0
+        for line in p.stdout.strip().splitlines():
+            parts = line.split(',')
+            if len(parts) < 3:
+                continue
+            if 'K' in parts[2]:
+                try:
+                    pts = float(parts[1])
+                except (ValueError, IndexError):
+                    continue
+                if last_kf is not None:
+                    gap = pts - last_kf
+                    if gap > max_gap:
+                        max_gap = gap
+                last_kf = pts
+        return max_gap if max_gap > 0 else None
+    except Exception:
+        return None
 
 
 def probe_media(ffprobe: Path, src: Path) -> dict:
@@ -438,7 +473,7 @@ def is_duration_close(expected: Optional[float], actual: Optional[float]) -> boo
     return abs(expected - actual) <= tolerance
 
 
-def assess_source_compliance(meta: dict) -> tuple[bool, list[str]]:
+def assess_source_compliance(meta: dict, max_keyframe_interval: Optional[float] = None) -> tuple[bool, list[str]]:
     """Check if the source file already meets all ErsatzTV copy-mode requirements.
 
     Returns (is_compliant, list_of_issues).
@@ -472,6 +507,12 @@ def assess_source_compliance(meta: dict) -> tuple[bool, list[str]]:
     sar = video.get('sample_aspect_ratio') or ''
     if sar not in (None, '', '1:1', 'N/A', '0:1'):
         issues.append(f'SAR 为 {sar}，不是 1:1')
+
+    # ── Keyframe interval must not exceed configured KEYFRAME_SECONDS ──
+    if max_keyframe_interval is not None and max_keyframe_interval > KEYFRAME_SECONDS:
+        issues.append(
+            f'关键帧间隔为 {max_keyframe_interval:.1f}秒，超过配置的 {KEYFRAME_SECONDS}秒'
+        )
 
     # ── Audio: if present, must be aac with correct params ──
     if audio is not None:
@@ -521,6 +562,12 @@ def validate_existing_target(
     params_match, mismatches = _compare_encoding_params(src_meta, meta, encoder)
     if not params_match:
         return False, '目标文件编码参数不匹配：' + '；'.join(mismatches), meta
+    # ── Check keyframe interval ──
+    max_kf_interval = probe_keyframe_interval(ffprobe, target)
+    if max_kf_interval is not None and max_kf_interval > KEYFRAME_SECONDS:
+        return False, (
+            f'目标文件关键帧间隔为 {max_kf_interval:.1f}秒，超过配置的 {KEYFRAME_SECONDS}秒'
+        ), meta
     return True, '目标文件校验通过（参数完全匹配，无需重新转码）', meta
 
 
@@ -644,6 +691,7 @@ def build_command(ffmpeg: Path, src: Path, dst: Path, fps: float, src_width: int
             '-bufsize', AMF_BUFSIZE,
             '-g', str(gop),
             '-keyint_min', str(gop),
+            '-sc_threshold', '0',
             '-bf', str(AMF_MAX_B_FRAMES),
             '-preanalysis', '1' if AMF_PREANALYSIS else '0',
             '-vbaq', '1' if AMF_VBAQ else '0',
@@ -663,7 +711,7 @@ def build_command(ffmpeg: Path, src: Path, dst: Path, fps: float, src_width: int
             '-g', str(gop),
             '-keyint_min', str(gop),
             '-sc_threshold', '0',
-            '-bf', '3',
+            '-bf', '0',
             '-force_key_frames', f'expr:gte(t,n_forced*{KEYFRAME_SECONDS})',
         ]
 
@@ -1061,7 +1109,11 @@ def execute_run(source_dir: Path, target_dir: Path, done_dir: Path, logs_dir: Pa
             print(f'    输入: {meta["video"].get("width")}x{meta["video"].get("height")} | {meta["fps"]:.3f}fps | 时长 {format_seconds(meta["duration"])}')
 
             # ── Step 1: 判断 source 文件本身是否符合所有标准 ──
-            src_compliant, src_issues = assess_source_compliance(meta)
+            print('    正在探测关键帧间隔...')
+            max_kf_interval = probe_keyframe_interval(ffprobe, src)
+            if max_kf_interval is not None:
+                print(f'    关键帧间隔: {max_kf_interval:.1f}秒（配置要求: {KEYFRAME_SECONDS}秒）')
+            src_compliant, src_issues = assess_source_compliance(meta, max_keyframe_interval=max_kf_interval)
 
             if src_compliant:
                 # 源文件已完全符合要求，直接移至 done，无需转码
