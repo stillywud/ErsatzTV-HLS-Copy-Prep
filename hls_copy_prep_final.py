@@ -46,6 +46,8 @@ FIXED_LEVEL = 'auto'
 MAX_WIDTH = 1920
 MAX_HEIGHT = 1080
 KEYFRAME_SECONDS = 1
+KEYFRAME_TOLERANCE = 1.5  # 校验容差（秒），实际关键帧间隔允许不超过 KEYFRAME_SECONDS + KEYFRAME_TOLERANCE
+FORCE_TRANSCODE = False   # 强制转码模式：跳过源文件合规检查和目标文件复用检查，所有文件一律重新转码
 ETA_LOWER_MULTIPLIER = 0.8
 ETA_UPPER_MULTIPLIER = 2.5
 MOVE_RETRY_COUNT = 5
@@ -303,7 +305,7 @@ def print_banner() -> None:
     print('ErsatzTV HLS Copy 预处理工具（最终定版参数）')
     print('=' * 72)
     print('目标：离线一次性整理源文件，播放时继续使用 copy 模式')
-    print('固定参数：H.264 / AAC / 1080p封顶 / 保持原fps但转CFR / 2秒GOP / 2秒强制关键帧')
+    print('固定参数：H.264 / AAC / 1080p封顶 / 保持原fps但转CFR / 1秒GOP / 1秒强制关键帧 / 校验容差1.5秒')
     print('固定质量参数：preset=medium, crf=23, audio=160k, level=auto')
     print('')
 
@@ -508,10 +510,11 @@ def assess_source_compliance(meta: dict, max_keyframe_interval: Optional[float] 
     if sar not in (None, '', '1:1', 'N/A', '0:1'):
         issues.append(f'SAR 为 {sar}，不是 1:1')
 
-    # ── Keyframe interval must not exceed configured KEYFRAME_SECONDS ──
-    if max_keyframe_interval is not None and max_keyframe_interval > KEYFRAME_SECONDS:
+    # ── Keyframe interval must not exceed configured threshold with tolerance ──
+    kf_threshold = KEYFRAME_SECONDS + KEYFRAME_TOLERANCE
+    if max_keyframe_interval is not None and max_keyframe_interval > kf_threshold:
         issues.append(
-            f'关键帧间隔为 {max_keyframe_interval:.1f}秒，超过配置的 {KEYFRAME_SECONDS}秒'
+            f'关键帧间隔为 {max_keyframe_interval:.1f}秒，超过校验阈值 {kf_threshold:.1f}秒（{KEYFRAME_SECONDS}秒+{KEYFRAME_TOLERANCE}秒容差）'
         )
 
     # ── Audio: if present, must be aac with correct params ──
@@ -562,11 +565,12 @@ def validate_existing_target(
     params_match, mismatches = _compare_encoding_params(src_meta, meta, encoder)
     if not params_match:
         return False, '目标文件编码参数不匹配：' + '；'.join(mismatches), meta
-    # ── Check keyframe interval ──
+    # ── Check keyframe interval (with tolerance) ──
+    kf_threshold = KEYFRAME_SECONDS + KEYFRAME_TOLERANCE
     max_kf_interval = probe_keyframe_interval(ffprobe, target)
-    if max_kf_interval is not None and max_kf_interval > KEYFRAME_SECONDS:
+    if max_kf_interval is not None and max_kf_interval > kf_threshold:
         return False, (
-            f'目标文件关键帧间隔为 {max_kf_interval:.1f}秒，超过配置的 {KEYFRAME_SECONDS}秒'
+            f'目标文件关键帧间隔为 {max_kf_interval:.1f}秒，超过校验阈值 {kf_threshold:.1f}秒（{KEYFRAME_SECONDS}秒+{KEYFRAME_TOLERANCE}秒容差）'
         ), meta
     return True, '目标文件校验通过（参数完全匹配，无需重新转码）', meta
 
@@ -819,7 +823,9 @@ def print_fixed_params(encoder: str = 'libx264') -> None:
     print(f'  - 帧率策略: 保持原fps，输出为CFR')
     print(f'  - GOP: {KEYFRAME_SECONDS}秒')
     print(f'  - 强制关键帧: 每{KEYFRAME_SECONDS}秒')
+    print(f'  - 关键帧校验容差: {KEYFRAME_TOLERANCE}秒（校验阈值: {KEYFRAME_SECONDS + KEYFRAME_TOLERANCE:.1f}秒）')
     print(f'  - 编码器模式: {ENCODER_MODE}（auto=自动检测GPU, cpu=强制CPU, amf=强制GPU）')
+    print(f'  - 强制转码: {"开启（--force 或 FORCE_TRANSCODE=True）" if FORCE_TRANSCODE else "关闭"}')
     print(f'  - 其他: SAR=1:1, avoid_negative_ts=make_zero, movflags=+faststart')
     print('')
 
@@ -1055,10 +1061,10 @@ def guided_mode(root: Path) -> int:
         print('已取消。')
         return 0
 
-    return execute_run(selected['source'], selected['target'], selected['done'], selected['logs'], ffmpeg, ffprobe, encoder)
+    return execute_run(selected['source'], selected['target'], selected['done'], selected['logs'], ffmpeg, ffprobe, encoder, force=FORCE_TRANSCODE)
 
 
-def execute_run(source_dir: Path, target_dir: Path, done_dir: Path, logs_dir: Path, ffmpeg: Path, ffprobe: Path, encoder: str = 'libx264') -> int:
+def execute_run(source_dir: Path, target_dir: Path, done_dir: Path, logs_dir: Path, ffmpeg: Path, ffprobe: Path, encoder: str = 'libx264', force: bool = False) -> int:
     files = list_videos(source_dir, recursive=True)
     if not files:
         print('源目录为空，没有可处理文件。')
@@ -1109,22 +1115,27 @@ def execute_run(source_dir: Path, target_dir: Path, done_dir: Path, logs_dir: Pa
             print(f'    输入: {meta["video"].get("width")}x{meta["video"].get("height")} | {meta["fps"]:.3f}fps | 时长 {format_seconds(meta["duration"])}')
 
             # ── Step 1: 判断 source 文件本身是否符合所有标准 ──
-            print('    正在探测关键帧间隔...')
-            max_kf_interval = probe_keyframe_interval(ffprobe, src)
-            if max_kf_interval is not None:
-                print(f'    关键帧间隔: {max_kf_interval:.1f}秒（配置要求: {KEYFRAME_SECONDS}秒）')
-            src_compliant, src_issues = assess_source_compliance(meta, max_keyframe_interval=max_kf_interval)
-
-            if src_compliant:
-                # 源文件已完全符合要求，直接移至 done，无需转码
-                print('    源文件已符合所有标准（无需转码），直接移至 done。')
-                done_path = move_to_done(src, done_dir, source_dir)
-                record['done_path'] = str(done_path)
-                record['status'] = 'ok_source_compliant'
-                record['note'] = '源文件已符合 HLS copy 模式全部要求，无需任何转码处理'
-                processed += 1
-                print(f'    结果: 符合标准，原文件已移动到 {done_path}')
+            if force:
+                print('    [强制转码模式] 跳过合规检查，直接转码。')
             else:
+                print('    正在探测关键帧间隔...')
+                max_kf_interval = probe_keyframe_interval(ffprobe, src)
+                if max_kf_interval is not None:
+                    print(f'    关键帧间隔: {max_kf_interval:.1f}秒（配置要求: {KEYFRAME_SECONDS}秒）')
+                src_compliant, src_issues = assess_source_compliance(meta, max_keyframe_interval=max_kf_interval)
+
+                if src_compliant:
+                    # 源文件已完全符合要求，直接移至 done，无需转码
+                    print('    源文件已符合所有标准（无需转码），直接移至 done。')
+                    done_path = move_to_done(src, done_dir, source_dir)
+                    record['done_path'] = str(done_path)
+                    record['status'] = 'ok_source_compliant'
+                    record['note'] = '源文件已符合 HLS copy 模式全部要求，无需任何转码处理'
+                    processed += 1
+                    print(f'    结果: 符合标准，原文件已移动到 {done_path}')
+                    continue
+
+            if not force:
                 # 源文件不符合标准，需要处理
                 reasons_str = '；'.join(src_issues)
                 print(f'    源文件不符合标准，原因：{reasons_str}')
@@ -1142,27 +1153,31 @@ def execute_run(source_dir: Path, target_dir: Path, done_dir: Path, logs_dir: Pa
                     processed += 1
                     recovered += 1
                     print(f'    结果: 目标已存在无需转码，原文件已移动到 {done_path}')
-                else:
-                    if dst.exists():
-                        print(f'    目标文件已存在但校验未通过：{existing_reason}')
-                        print('    将重新转码并覆盖目标文件。')
+                    continue
 
-                    print(f'    输出: {dst}')
-                    print(f'    日志: {file_log}')
-                    rc, _, err = run_one(ffmpeg, src, dst, meta, file_log, encoder=encoder)
-                    if rc != 0:
-                        raise RuntimeError(err or f'ffmpeg exited with code {rc}')
+                if dst.exists():
+                    print(f'    目标文件已存在但校验未通过：{existing_reason}')
+                    print('    将重新转码并覆盖目标文件。')
 
-                    target_ok, target_reason, target_meta = validate_existing_target(ffprobe, dst, meta, encoder)
-                    if not target_ok:
-                        raise RuntimeError(f'转码完成后目标文件校验失败：{target_reason}')
+            if dst.exists():
+                print('    将重新转码并覆盖目标文件。')
 
-                    done_path = move_to_done(src, done_dir, source_dir)
-                    record['done_path'] = str(done_path)
-                    record['status'] = 'ok'
-                    record['target_duration_seconds'] = target_meta.get('duration') if target_meta else None
-                    processed += 1
-                    print(f'    结果: 成功，原文件已移动到 {done_path}')
+            print(f'    输出: {dst}')
+            print(f'    日志: {file_log}')
+            rc, _, err = run_one(ffmpeg, src, dst, meta, file_log, encoder=encoder)
+            if rc != 0:
+                raise RuntimeError(err or f'ffmpeg exited with code {rc}')
+
+            target_ok, target_reason, target_meta = validate_existing_target(ffprobe, dst, meta, encoder)
+            if not target_ok:
+                raise RuntimeError(f'转码完成后目标文件校验失败：{target_reason}')
+
+            done_path = move_to_done(src, done_dir, source_dir)
+            record['done_path'] = str(done_path)
+            record['status'] = 'ok' if not force else 'ok_forced'
+            record['target_duration_seconds'] = target_meta.get('duration') if target_meta else None
+            processed += 1
+            print(f'    结果: 成功，原文件已移动到 {done_path}')
 
         except Exception as e:
             failed += 1
@@ -1242,6 +1257,7 @@ def main() -> int:
     ap.add_argument('--guided', action='store_true', help='Run interactive guided mode')
     ap.add_argument('--scan-only', action='store_true', help='Only scan files, estimate time, and generate risk report')
     ap.add_argument('--check-only', action='store_true', help='Only validate environment and print fixed parameters')
+    ap.add_argument('--force', action='store_true', help='Force transcode all files, skip compliance check and existing target reuse')
     args = ap.parse_args()
 
     root = resolve_root(args.root)
@@ -1249,6 +1265,13 @@ def main() -> int:
         return check_only(root)
     if args.scan_only:
         return scan_only_mode(root)
+    # --force 命令行参数优先于 FORCE_TRANSCODE 常量
+    if args.force:
+        FORCE_TRANSCODE = True
+    # 如果当前目录存在 .force 文件，也启用强制转码
+    force_file = Path(__file__).parent / '.force'
+    if force_file.exists():
+        FORCE_TRANSCODE = True
     return guided_mode(root)
 
 
