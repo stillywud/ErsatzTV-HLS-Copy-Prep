@@ -45,8 +45,8 @@ FIXED_PROFILE = 'high'
 FIXED_LEVEL = 'auto'
 MAX_WIDTH = 1920
 MAX_HEIGHT = 1080
-KEYFRAME_SECONDS = 1
-KEYFRAME_TOLERANCE = 1.5  # 校验容差（秒），实际关键帧间隔允许不超过 KEYFRAME_SECONDS + KEYFRAME_TOLERANCE
+KEYFRAME_SECONDS = 4  # GOP 与 ErsatzTV hls_time 对齐，减少文件大小
+KEYFRAME_TOLERANCE = 0.5  # 4秒 GOP 下容差可以更小
 FORCE_TRANSCODE = False   # 强制转码模式：跳过源文件合规检查和目标文件复用检查，所有文件一律重新转码
 ETA_LOWER_MULTIPLIER = 0.8
 ETA_UPPER_MULTIPLIER = 2.5
@@ -305,7 +305,7 @@ def print_banner() -> None:
     print('ErsatzTV HLS Copy 预处理工具（最终定版参数）')
     print('=' * 72)
     print('目标：离线一次性整理源文件，播放时继续使用 copy 模式')
-    print('固定参数：H.264 / AAC / 1080p封顶 / 保持原fps但转CFR / 1秒GOP / 1秒强制关键帧 / 校验容差1.5秒')
+    print('固定参数：H.264 / AAC / 1080p封顶 / 保持原fps但转CFR / 4秒GOP / 4秒强制关键帧 / 校验容差0.5秒')
     print('固定质量参数：preset=medium, crf=23, audio=160k, level=auto')
     print('')
 
