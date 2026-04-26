@@ -24,7 +24,7 @@ FIXED_CRF = '23'
 # ── AMF GPU 编码参数（h264_amf）──
 AMF_USAGE = 'transcoding'          # transcoding / high_quality
 AMF_QUALITY = 'speed'              # balanced / speed / quality - 使用speed减少体积
-AMF_RATE_CONTROL = 'vbr'           # vbr = Variable Bitrate
+AMF_RATE_CONTROL = '2'             # 2 = vbr_peak (Variable Bitrate, Peak Constrained)
 # 动态码率计算：根据源文件分辨率和码率自动计算
 # 基础码率表（每像素比特率，经验值）
 BITRATE_PER_PIXEL = {
