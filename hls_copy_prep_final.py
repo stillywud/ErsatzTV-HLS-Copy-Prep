@@ -46,9 +46,10 @@ AMF_MAX_B_FRAMES = 0               # 禁用 B 帧
 AMF_LEVEL = '4.0'                  # H.264 Level 4.0
 
 # ── 通用参数 ──────────────────────────────────────────────────
-FIXED_AUDIO_BITRATE = '160k'
-FIXED_AUDIO_RATE = '48000'
-FIXED_AUDIO_CHANNELS = '2'
+# 音频参数：尽量保持源文件值，除非必须转换
+FIXED_AUDIO_BITRATE = None         # None = 保持源文件音频码率
+FIXED_AUDIO_RATE = None            # None = 保持源文件采样率
+FIXED_AUDIO_CHANNELS = None        # None = 保持源文件声道数
 FIXED_RESOLUTION_MODE = 'cap_1080p'
 FIXED_PIXEL_FORMAT = 'yuv420p'
 FIXED_PROFILE = 'high'
@@ -772,12 +773,14 @@ def build_command(ffmpeg: Path, src: Path, dst: Path, fps: float, src_width: int
         ]
 
     if has_audio:
-        cmd += [
-            '-c:a', 'aac',
-            '-b:a', FIXED_AUDIO_BITRATE,
-            '-ar', FIXED_AUDIO_RATE,
-            '-ac', FIXED_AUDIO_CHANNELS,
-        ]
+        cmd += ['-c:a', 'aac']
+        # 仅在指定了固定值时才设置音频参数
+        if FIXED_AUDIO_BITRATE is not None:
+            cmd += ['-b:a', FIXED_AUDIO_BITRATE]
+        if FIXED_AUDIO_RATE is not None:
+            cmd += ['-ar', FIXED_AUDIO_RATE]
+        if FIXED_AUDIO_CHANNELS is not None:
+            cmd += ['-ac', FIXED_AUDIO_CHANNELS]
     else:
         cmd += ['-an']
     cmd += ['-movflags', '+faststart', str(dst)]
