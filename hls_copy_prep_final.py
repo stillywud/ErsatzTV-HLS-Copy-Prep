@@ -23,17 +23,27 @@ FIXED_CRF = '23'
 
 # ── AMF GPU 编码参数（h264_amf）──
 AMF_USAGE = 'transcoding'          # transcoding / high_quality
-AMF_QUALITY = 'quality'            # balanced / speed / quality
-AMF_RATE_CONTROL = 'qvbr'          # qvbr = Quality Variable Bitrate
-AMF_QVBR_QUALITY_LEVEL = 23       # 0-51, 与 CRF 23 对齐，平衡质量与体积
-AMF_PREANALYSIS = False            # 禁用预分析（会限制并发流水线，不利于高fps转码）
-AMF_VBAQ = True                    # 启用 VBAQ，提升主观质量
-AMF_ENFORCE_HRD = False           # 不强制 HRD（VBR 模式下无需）
-AMF_ASYNC_DEPTH = 4               # 异步流水线深度，增大可提升GPU利用率（4-8）
-AMF_MAX_B_FRAMES = 0               # 禁用 B 帧（HLS copy 模式下避免卡顿）
-AMF_MAXRATE = '4000k'             # 码率峰值上限，复杂场景不超过此值
-AMF_BUFSIZE = '8000k'             # CPB缓冲大小，2x maxrate 让 QVBR 真正发挥动态码率
-AMF_LEVEL = '4.0'                  # H.264 Level 4.0，1080p最低兼容底线（低端Android必需）
+AMF_QUALITY = 'speed'              # balanced / speed / quality - 使用speed减少体积
+AMF_RATE_CONTROL = 'vbr'           # vbr = Variable Bitrate
+# 动态码率计算：根据源文件分辨率和码率自动计算
+# 基础码率表（每像素比特率，经验值）
+BITRATE_PER_PIXEL = {
+    # 分辨率阈值 (宽度*高度): 目标码率 (bps)
+    1280*720: 1500000,    # 720p: 1.5 Mbps
+    1920*1080: 2500000,   # 1080p: 2.5 Mbps
+    2560*1440: 4000000,   # 2K: 4 Mbps
+    3840*2160: 8000000,   # 4K: 8 Mbps
+}
+# 最大码率倍数：输出不会超过源文件码率的这个倍数
+MAX_BITRATE_RATIO = 1.2
+# 最小码率保障（防止过低质量）
+MIN_VIDEO_BITRATE = 800000  # 800 kbps
+AMF_PREANALYSIS = False            # 禁用预分析
+AMF_VBAQ = True                    # 启用 VBAQ
+AMF_ENFORCE_HRD = False           # 不强制 HRD
+AMF_ASYNC_DEPTH = 4               # 异步流水线深度
+AMF_MAX_B_FRAMES = 0               # 禁用 B 帧
+AMF_LEVEL = '4.0'                  # H.264 Level 4.0
 
 # ── 通用参数 ──────────────────────────────────────────────────
 FIXED_AUDIO_BITRATE = '160k'
@@ -659,7 +669,47 @@ def move_to_done(src: Path, done_root: Path, source_root: Path) -> Path:
     raise RuntimeError(f'原文件移动到 done 失败：{last_error}')
 
 
-def build_command(ffmpeg: Path, src: Path, dst: Path, fps: float, src_width: int, src_height: int, has_audio: bool, encoder: str = 'libx264') -> list[str]:
+def compute_target_bitrate(src_width: int, src_height: int, src_bitrate: Optional[int]) -> tuple[str, str, str]:
+    """Compute target bitrate based on source resolution and bitrate.
+    
+    Returns (target_bitrate, maxrate, bufsize) as strings with 'k' suffix.
+    Ensures output does not exceed source bitrate * MAX_BITRATE_RATIO.
+    """
+    # 根据分辨率确定基础目标码率
+    pixels = src_width * src_height
+    base_bitrate = MIN_VIDEO_BITRATE
+    
+    # 找到适合的分辨率档位
+    for threshold_pixels, threshold_bitrate in sorted(BITRATE_PER_PIXEL.items()):
+        if pixels <= threshold_pixels:
+            base_bitrate = threshold_bitrate
+            break
+    else:
+        # 超过最大配置，使用4K码率
+        base_bitrate = BITRATE_PER_PIXEL[3840*2160]
+    
+    # 如果源文件码率已知，限制不超过源码率的 MAX_BITRATE_RATIO 倍
+    if src_bitrate and src_bitrate > 0:
+        max_allowed = int(src_bitrate * MAX_BITRATE_RATIO)
+        target_bitrate = min(base_bitrate, max_allowed)
+    else:
+        target_bitrate = base_bitrate
+    
+    # 确保不低于最小码率
+    target_bitrate = max(target_bitrate, MIN_VIDEO_BITRATE)
+    
+    # 计算 maxrate (通常是目标码率的 1.6 倍) 和 bufsize
+    maxrate = int(target_bitrate * 1.6)
+    bufsize = int(target_bitrate * 2)
+    
+    # 转换为带 'k' 后缀的字符串 (kbps)
+    def to_k(bps: int) -> str:
+        return f'{bps // 1000}k'
+    
+    return to_k(target_bitrate), to_k(maxrate), to_k(bufsize)
+
+
+def build_command(ffmpeg: Path, src: Path, dst: Path, fps: float, src_width: int, src_height: int, has_audio: bool, encoder: str = 'libx264', src_bitrate: Optional[int] = None) -> list[str]:
     gop = max(1, round(fps * KEYFRAME_SECONDS))
     tw, th = compute_target_resolution(src_width, src_height)
 
@@ -682,17 +732,19 @@ def build_command(ffmpeg: Path, src: Path, dst: Path, fps: float, src_width: int
         # ── AMD AMF GPU 编码路径 ──
         # AMF 输入需要 NV12，由 -vf 中的 format 转换；GPU 编码器自带 GOP 控制
         vf = build_vf(fps, src_width, src_height)
+        # 动态计算码率
+        target_bitrate, maxrate, bufsize = compute_target_bitrate(src_width, src_height, src_bitrate)
         cmd = common_prefix + [
             '-vf', f'{vf},format=nv12',
             '-c:v', 'h264_amf',
             '-usage', AMF_USAGE,
             '-quality', AMF_QUALITY,
             '-rc', AMF_RATE_CONTROL,
-            '-qvbr_quality_level', str(AMF_QVBR_QUALITY_LEVEL),
+            '-b:v', target_bitrate,
             '-profile:v', 'high',
             '-level:v', AMF_LEVEL,
-            '-maxrate', AMF_MAXRATE,
-            '-bufsize', AMF_BUFSIZE,
+            '-maxrate', maxrate,
+            '-bufsize', bufsize,
             '-g', str(gop),
             '-keyint_min', str(gop),
             '-sc_threshold', '0',
@@ -738,7 +790,8 @@ def run_one(ffmpeg: Path, src: Path, dst: Path, meta: dict, file_log: Path, enco
     src_width = int(meta['video'].get('width') or 0)
     src_height = int(meta['video'].get('height') or 0)
     tw, th = compute_target_resolution(src_width, src_height)
-    cmd = build_command(ffmpeg, src, dst, fps, src_width, src_height, bool(meta['audio']), encoder=encoder)
+    src_bitrate = int(meta['video'].get('bit_rate') or 0) if meta.get('video') else None
+    cmd = build_command(ffmpeg, src, dst, fps, src_width, src_height, bool(meta['audio']), encoder=encoder, src_bitrate=src_bitrate)
     ensure_dir(dst.parent)
     ensure_dir(file_log.parent)
 
@@ -806,7 +859,7 @@ def print_fixed_params(encoder: str = 'libx264') -> None:
         print(f'  - usage: {AMF_USAGE}')
         print(f'  - quality: {AMF_QUALITY}')
         print(f'  - 码率控制: {AMF_RATE_CONTROL}')
-        print(f'  - qvbr_quality_level: {AMF_QVBR_QUALITY_LEVEL}')
+        print(f'  - 动态码率: 根据分辨率和源文件码率自动计算')
         print(f'  - preanalysis: {AMF_PREANALYSIS}')
         print(f'  - vbaq: {AMF_VBAQ}')
     else:
